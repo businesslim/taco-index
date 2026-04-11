@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.redis_client import close_redis
 from app.scheduler.jobs import start_scheduler
+from app.api.index import router as index_router
+from app.api.tweets import router as tweets_router
+from app.api.bands import router as bands_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,6 +22,10 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+
+app.include_router(index_router)
+app.include_router(tweets_router)
+app.include_router(bands_router)
 
 @app.get("/health")
 async def health():
