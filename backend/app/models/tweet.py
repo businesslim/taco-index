@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Text, Integer, ForeignKey, DateTime
+from sqlalchemy import String, Text, Integer, ForeignKey, DateTime, func
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
@@ -13,17 +13,21 @@ class Tweet(Base):
     tweet_id: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     content: Mapped[str] = mapped_column(Text)
     posted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     raw_data: Mapped[dict] = mapped_column(JSONB)
 
-    score: Mapped["TweetScore"] = relationship("TweetScore", back_populates="tweet", uselist=False)
+    score: Mapped["TweetScore"] = relationship(
+        "TweetScore", back_populates="tweet", uselist=False, cascade="all, delete-orphan"
+    )
 
 
 class TweetScore(Base):
     __tablename__ = "tweet_scores"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tweet_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("tweets.id"))
+    tweet_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tweets.id", ondelete="CASCADE"), unique=True
+    )
     llm_score: Mapped[int] = mapped_column(Integer)
     keyword_score: Mapped[int] = mapped_column(Integer)
     final_score: Mapped[int] = mapped_column(Integer)
