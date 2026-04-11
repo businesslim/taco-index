@@ -50,7 +50,14 @@ def analyze_tweet(content: str, keyword_hints: list[str]) -> tuple[int, str]:
     )
 
     try:
-        data = json.loads(message.content[0].text)
+        raw = message.content[0].text.strip()
+        # 마크다운 코드블록 제거 (```json ... ``` 또는 ``` ... ```)
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+            raw = raw.strip()
+        data = json.loads(raw)
         score = max(0, min(100, int(data["score"])))
         reasoning = str(data.get("reasoning", ""))
         return score, reasoning

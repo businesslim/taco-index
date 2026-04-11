@@ -25,14 +25,17 @@ export default function IndexHistoryChart({ data }: Props) {
     );
   }
 
-  const chartData = [...data].reverse().map((point) => ({
-    date: new Date(point.calculated_at).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    }),
-    value: point.index_value,
-    label: point.band_label,
-  }));
+  const chartData = [...data].reverse().map((point) => {
+    const d = new Date(point.calculated_at);
+    const date = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+    return {
+      date: `${date} ${time}`,
+      value: point.index_value,
+      label: point.band_label,
+      fullTime: d.toLocaleString(),
+    };
+  });
 
   return (
     <ResponsiveContainer width="100%" height={200}>

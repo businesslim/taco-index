@@ -1,71 +1,81 @@
 "use client";
 
 interface GaugeMeterProps {
-  value: number;    // 0~100
-  label: string;    // e.g. "Bullish"
-  color: string;    // HEX color
+  value: number; // 0~100
+  label: string;
+  color: string;
 }
 
 export default function GaugeMeter({ value, label, color }: GaugeMeterProps) {
-  const clampedValue = Math.max(0, Math.min(100, value));
-  // 0~100 → -90° ~ +90° (180° total arc)
-  const angle = (clampedValue / 100) * 180 - 90;
-  const needleRad = (angle * Math.PI) / 180;
-  const needleX = 100 + 70 * Math.cos(needleRad);
-  const needleY = 100 + 70 * Math.sin(needleRad);
+  const v = Math.max(0, Math.min(100, value));
+  const cx = 100;
+  const cy = 100;
+  const r = 70;
+  const sw = 18;
 
+  // 표준 수학 좌표 (0°=오른쪽, 90°=위) → SVG 좌표 변환
+  // 0%  → 180° → 왼쪽 끝 (Extreme Bearish, 빨강)
+  // 50% →  90° → 정중앙 위 (Neutral, 노랑)
+  // 100%→   0° → 오른쪽 끝 (Extreme Bullish, 초록)
+  function toPoint(pct: number) {
+    const theta = Math.PI * (1 - pct / 100);
+    return {
+      x: cx + r * Math.cos(theta),
+      y: cy - r * Math.sin(theta),
+    };
+  }
+
+  // 좌→우: 빨강 → 주황 → 노랑 → 연두 → 진초록
   const segments = [
-    { color: "#FF4444" }, // Extreme Bearish
-    { color: "#FF8C00" }, // Bearish
-    { color: "#FFD700" }, // Neutral
-    { color: "#32CD32" }, // Bullish
-    { color: "#008000" }, // Extreme Bullish
+    "#FF4444", // 0~20  Extreme Bearish
+    "#FF8C00", // 20~40 Bearish
+    "#FFD700", // 40~60 Neutral
+    "#32CD32", // 60~80 Bullish
+    "#008000", // 80~100 Extreme Bullish
   ];
 
-  function polarToCartesian(cx: number, cy: number, r: number, deg: number) {
-    const rad = ((deg - 90) * Math.PI) / 180;
-    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-  }
+  const paths = segments.map((segColor, i) => {
+    const start = toPoint(i * 20);
+    const end = toPoint((i + 1) * 20);
+    return {
+      segColor,
+      d: `M ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${r} ${r} 0 0 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)}`,
+    };
+  });
 
-  function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg: number) {
-    const start = polarToCartesian(cx, cy, r, endDeg);
-    const end = polarToCartesian(cx, cy, r, startDeg);
-    const largeArc = endDeg - startDeg > 180 ? 1 : 0;
-    return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 0 ${end.x} ${end.y}`;
-  }
+  // 바늘: 0=왼쪽, 50=정중앙(위), 100=오른쪽
+  const needleAngle = Math.PI * (1 - v / 100);
+  const needleLen = r - sw / 2 - 4;
+  const needleX = cx + needleLen * Math.cos(needleAngle);
+  const needleY = cy - needleLen * Math.sin(needleAngle);
 
-  let cumulative = 0;
   return (
     <div className="flex flex-col items-center gap-4">
-      <svg viewBox="0 0 200 120" className="w-72 h-44">
-        {segments.map((seg, i) => {
-          const startDeg = 180 + cumulative * 1.8;
-          cumulative += 20;
-          const endDeg = 180 + cumulative * 1.8;
-          return (
-            <path
-              key={i}
-              d={describeArc(100, 100, 75, startDeg, endDeg)}
-              fill="none"
-              stroke={seg.color}
-              strokeWidth="18"
-            />
-          );
-        })}
+      <svg viewBox="0 0 200 115" className="w-72 h-44">
+        {paths.map((seg, i) => (
+          <path
+            key={i}
+            d={seg.d}
+            fill="none"
+            stroke={seg.segColor}
+            strokeWidth={sw}
+            strokeLinecap="butt"
+          />
+        ))}
         <line
-          x1="100"
-          y1="100"
-          x2={needleX}
-          y2={needleY}
+          x1={cx}
+          y1={cy}
+          x2={needleX.toFixed(2)}
+          y2={needleY.toFixed(2)}
           stroke="white"
           strokeWidth="3"
           strokeLinecap="round"
         />
-        <circle cx="100" cy="100" r="5" fill="white" />
+        <circle cx={cx} cy={cy} r="5" fill="white" />
       </svg>
       <div className="text-center">
         <p className="text-6xl font-bold" style={{ color }}>
-          {clampedValue}
+          {v}
         </p>
         <p className="text-xl mt-1 font-medium" style={{ color }}>
           {label}

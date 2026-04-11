@@ -26,10 +26,13 @@ export default function TweetFeed({ tweets }: Props) {
   return (
     <ul className="flex flex-col gap-4">
       {tweets.map((tweet) => (
-        <li
-          key={tweet.tweet_id}
-          className="border border-gray-800 rounded-xl p-4 hover:border-gray-600 transition-colors"
-        >
+        <li key={tweet.tweet_id}>
+          <a
+            href={`https://truthsocial.com/@realDonaldTrump/posts/${tweet.tweet_id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block border border-gray-800 rounded-xl p-4 hover:border-gray-600 transition-colors cursor-pointer"
+          >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">
               {tweet.source === "truth_social" ? "Truth Social" : "X (Twitter)"}
@@ -54,6 +57,7 @@ export default function TweetFeed({ tweets }: Props) {
               </span>
             )}
           </div>
+          </a>
         </li>
       ))}
     </ul>
