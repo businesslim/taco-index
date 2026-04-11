@@ -1,0 +1,59 @@
+from datetime import datetime, timezone
+from typing import TypedDict
+
+LLM_WEIGHT = 0.7
+KEYWORD_WEIGHT = 0.3
+
+BANDS = [
+    (0,  20,  "Extreme Bearish"),
+    (21, 40,  "Bearish"),
+    (41, 60,  "Neutral"),
+    (61, 80,  "Bullish"),
+    (81, 100, "Extreme Bullish"),
+]
+
+class ScoredTweet(TypedDict):
+    final_score: int
+    posted_at: datetime
+
+
+def compute_final_score(llm_score: int, keyword_score: int) -> int:
+    """LLM(70%)과 키워드(30%) 점수를 합산해 0~100으로 반환."""
+    raw = llm_score * LLM_WEIGHT + keyword_score * KEYWORD_WEIGHT
+    return max(0, min(100, round(raw)))
+
+
+def compute_taco_index(tweets: list[ScoredTweet]) -> int:
+    """최근 72시간 트윗들의 시간 가중 평균으로 TACO Index(0~100)를 계산한다.
+    최신 트윗일수록 가중치가 높다 (선형 감소).
+    """
+    if not tweets:
+        return 50
+
+    now = datetime.now(timezone.utc)
+    max_hours = 72.0
+
+    total_weight = 0.0
+    weighted_sum = 0.0
+
+    for tweet in tweets:
+        posted_at = tweet["posted_at"]
+        if posted_at.tzinfo is None:
+            posted_at = posted_at.replace(tzinfo=timezone.utc)
+        hours_ago = (now - posted_at).total_seconds() / 3600
+        weight = max(0.0, max_hours - hours_ago) / max_hours  # 0.0 ~ 1.0
+        weighted_sum += tweet["final_score"] * weight
+        total_weight += weight
+
+    if total_weight == 0:
+        return 50
+
+    return max(0, min(100, round(weighted_sum / total_weight)))
+
+
+def get_band_label(score: int) -> str:
+    """점수에 해당하는 밴드 레이블을 반환한다."""
+    for min_s, max_s, label in BANDS:
+        if min_s <= score <= max_s:
+            return label
+    return "Neutral"
