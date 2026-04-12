@@ -24,12 +24,12 @@ async def run_pipeline() -> None:
     logger.info("Pipeline started")
     redis = await get_redis()
 
-    # 1. 스크래핑
+    # 1. 스크래핑 (실패해도 인덱스 재계산은 계속 진행)
+    posts = []
     try:
         posts = await fetch_truth_social_posts()
     except Exception as e:
         logger.error(f"Scraping failed: {e}")
-        return
 
     # 2. 새 트윗 필터링 + 분석 + 저장
     async with AsyncSessionLocal() as db:
