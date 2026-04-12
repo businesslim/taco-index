@@ -1,8 +1,11 @@
+import math
 from datetime import datetime, timezone
 from typing import TypedDict
 
 LLM_WEIGHT = 0.7
 KEYWORD_WEIGHT = 0.3
+
+HALF_LIFE_HOURS = 12.0  # 12시간마다 가중치가 절반으로 감소
 
 BANDS = [
     (0,  20,  "Extreme Bearish"),
@@ -24,14 +27,13 @@ def compute_final_score(llm_score: int, keyword_score: int) -> int:
 
 
 def compute_taco_index(tweets: list[ScoredTweet]) -> int:
-    """최근 72시간 트윗들의 시간 가중 평균으로 TACO Index(0~100)를 계산한다.
-    최신 트윗일수록 가중치가 높다 (선형 감소).
+    """최근 72시간 트윗들의 지수 감쇠 가중 평균으로 TACO Index(0~100)를 계산한다.
+    최신 트윗일수록 가중치가 높다 (지수 감쇠, half-life=12h).
     """
     if not tweets:
         return 50
 
     now = datetime.now(timezone.utc)
-    max_hours = 72.0
 
     total_weight = 0.0
     weighted_sum = 0.0
@@ -41,7 +43,7 @@ def compute_taco_index(tweets: list[ScoredTweet]) -> int:
         if posted_at.tzinfo is None:
             posted_at = posted_at.replace(tzinfo=timezone.utc)
         hours_ago = (now - posted_at).total_seconds() / 3600
-        weight = max(0.0, max_hours - hours_ago) / max_hours  # 0.0 ~ 1.0
+        weight = math.exp(-hours_ago / HALF_LIFE_HOURS)
         weighted_sum += tweet["final_score"] * weight
         total_weight += weight
 
