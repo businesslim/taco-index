@@ -39,7 +39,7 @@ export default function TweetFeed({ tweets }: Props) {
             </span>
             <span className="text-xs text-gray-500">{timeAgo(tweet.posted_at)}</span>
           </div>
-          <p className="text-sm text-gray-200 mb-3 leading-relaxed">{tweet.content}</p>
+          <p className="text-sm text-gray-200 mb-3 leading-relaxed break-words">{tweet.content}</p>
           <div className="flex items-center gap-3 flex-wrap">
             <span
               className="text-sm font-bold px-3 py-1 rounded-full"
