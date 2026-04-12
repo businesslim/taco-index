@@ -5,25 +5,35 @@ interface CoinData {
   price_change_percentage_24h: number;
 }
 
-async function fetchCoinPrices(): Promise<CoinData[]> {
+async function fetchCoinPrices(): Promise<{ coins: CoinData[]; fetchedAt: Date }> {
   try {
     const res = await fetch(
       "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,solana&order=market_cap_desc",
       { next: { revalidate: 300 } }
     );
-    if (!res.ok) return [];
-    return res.json();
+    if (!res.ok) return { coins: [], fetchedAt: new Date() };
+    return { coins: await res.json(), fetchedAt: new Date() };
   } catch {
-    return [];
+    return { coins: [], fetchedAt: new Date() };
   }
 }
 
 export default async function CoinPriceTicker() {
-  const coins = await fetchCoinPrices();
+  const { coins, fetchedAt } = await fetchCoinPrices();
 
   if (coins.length === 0) {
     return null;
   }
+
+  const updatedAt = fetchedAt.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "UTC",
+    timeZoneName: "short",
+  });
 
   return (
     <div className="bg-gray-900 rounded-2xl p-6">
@@ -50,6 +60,7 @@ export default async function CoinPriceTicker() {
           );
         })}
       </div>
+      <p className="text-xs text-gray-500 mt-4">Last updated: {updatedAt}</p>
     </div>
   );
 }
