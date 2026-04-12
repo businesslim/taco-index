@@ -1,4 +1,5 @@
 import { TweetWithScore } from "@/lib/api";
+import TweetItem from "./TweetItem";
 
 interface Props {
   tweets: TweetWithScore[];
@@ -27,37 +28,7 @@ export default function TweetFeed({ tweets }: Props) {
     <ul className="flex flex-col gap-4">
       {tweets.map((tweet) => (
         <li key={tweet.tweet_id}>
-          <a
-            href={`https://truthsocial.com/@realDonaldTrump/posts/${tweet.tweet_id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block border border-gray-800 rounded-xl p-4 hover:border-gray-600 transition-colors cursor-pointer"
-          >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">
-              {tweet.source === "truth_social" ? "Truth Social" : "X (Twitter)"}
-            </span>
-            <span className="text-xs text-gray-500">{timeAgo(tweet.posted_at)}</span>
-          </div>
-          <p className="text-sm text-gray-200 mb-3 leading-relaxed break-words">{tweet.content}</p>
-          <div className="flex items-center gap-3 flex-wrap">
-            <span
-              className="text-sm font-bold px-3 py-1 rounded-full"
-              style={{
-                backgroundColor: tweet.band_color + "22",
-                color: tweet.band_color,
-                border: `1px solid ${tweet.band_color}44`,
-              }}
-            >
-              {tweet.final_score} · {tweet.band_label}
-            </span>
-            {tweet.llm_reasoning && (
-              <span className="text-xs text-gray-500 italic">
-                &ldquo;{tweet.llm_reasoning}&rdquo;
-              </span>
-            )}
-          </div>
-          </a>
+          <TweetItem tweet={tweet} timeAgo={timeAgo(tweet.posted_at)} />
         </li>
       ))}
     </ul>
