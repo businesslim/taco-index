@@ -2,6 +2,5 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT --log-level warning"
+startCommand = "sh start.sh"
 restartPolicyType = "on_failure"
-releaseCommand = "python -m alembic upgrade head"
