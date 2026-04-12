@@ -24,9 +24,6 @@ export default function RootLayout({
           <div className="max-w-5xl mx-auto flex items-center gap-2">
             <span className="text-2xl">🌮</span>
             <h1 className="text-xl font-bold">TACO Index</h1>
-            <span className="text-gray-400 text-sm ml-2">
-              Trump Asset Crypto Oracle
-            </span>
           </div>
         </header>
         <main className="max-w-5xl mx-auto px-6 py-8">{children}</main>
