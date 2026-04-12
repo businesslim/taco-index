@@ -1,9 +1,10 @@
+import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.redis_client import close_redis
-from app.scheduler.jobs import start_scheduler
+from app.scheduler.jobs import start_scheduler, run_pipeline
 from app.api.index import router as index_router
 from app.api.tweets import router as tweets_router
 from app.api.bands import router as bands_router
@@ -11,6 +12,7 @@ from app.api.bands import router as bands_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     start_scheduler()
+    asyncio.create_task(run_pipeline())  # 서버 시작 시 즉시 1회 실행
     yield
     await close_redis()
 

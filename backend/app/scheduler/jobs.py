@@ -78,9 +78,8 @@ async def run_pipeline() -> None:
         await db.commit()
         logger.info(f"Saved {new_count} new tweets")
 
-        # 3. TACO Index 재계산
-        if new_count > 0:
-            await recalculate_index(db, redis)
+        # 3. TACO Index 재계산 (새 포스트 없어도 항상 실행)
+        await recalculate_index(db, redis)
 
 
 async def recalculate_index(db: AsyncSession, redis) -> None:
