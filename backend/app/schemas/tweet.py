@@ -10,6 +10,7 @@ class TweetWithScore(BaseModel):
     band_label: str
     band_color: str
     llm_reasoning: str
+    market_relevant: bool
 
 class RecentTweetsResponse(BaseModel):
     data: list[TweetWithScore]

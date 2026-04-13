@@ -57,6 +57,11 @@ export default function TweetItem({ tweet, timeAgo }: Props) {
         >
           {tweet.final_score} · {tweet.band_label}
         </span>
+        {!tweet.market_relevant && (
+          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-500 border border-gray-700">
+            Off-topic
+          </span>
+        )}
         {tweet.llm_reasoning && (
           <span className="text-xs text-gray-500 italic">
             &ldquo;{tweet.llm_reasoning}&rdquo;

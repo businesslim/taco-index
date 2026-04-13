@@ -17,6 +17,7 @@ export interface TweetWithScore {
   band_label: string;
   band_color: string;
   llm_reasoning: string;
+  market_relevant: boolean;
 }
 
 export interface IndexHistoryPoint {

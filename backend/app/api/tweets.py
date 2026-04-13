@@ -41,6 +41,7 @@ async def get_recent_tweets(
             band_label=band_label,
             band_color=BAND_COLORS.get(band_label, "#FFD700"),
             llm_reasoning=score.llm_reasoning,
+            market_relevant=score.market_relevant,
         ))
 
     return RecentTweetsResponse(data=data)

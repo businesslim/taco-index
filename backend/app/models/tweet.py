@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Text, Integer, ForeignKey, DateTime, func
+from sqlalchemy import String, Text, Integer, Boolean, ForeignKey, DateTime, func
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
@@ -32,6 +32,7 @@ class TweetScore(Base):
     keyword_score: Mapped[int] = mapped_column(Integer)
     final_score: Mapped[int] = mapped_column(Integer)
     llm_reasoning: Mapped[str] = mapped_column(Text)
+    market_relevant: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     tweet: Mapped["Tweet"] = relationship("Tweet", back_populates="score")

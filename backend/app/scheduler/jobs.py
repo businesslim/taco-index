@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, true
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import AsyncSessionLocal
 from app.redis_client import get_redis
@@ -44,10 +44,10 @@ async def run_pipeline() -> None:
 
             # LLM 분석
             try:
-                llm_score, reasoning = analyze_tweet(post["content"], hints)
+                llm_score, reasoning, market_relevant = analyze_tweet(post["content"], hints)
             except Exception as e:
                 logger.error(f"LLM analysis failed for tweet {post['tweet_id']}: {e}")
-                llm_score, reasoning = 50, "Analysis unavailable"
+                llm_score, reasoning, market_relevant = 50, "Analysis unavailable", True
 
             keyword_score = compute_keyword_score(post["content"])
             final_score = compute_final_score(llm_score, keyword_score)
@@ -69,6 +69,7 @@ async def run_pipeline() -> None:
                 keyword_score=keyword_score,
                 final_score=final_score,
                 llm_reasoning=reasoning,
+                market_relevant=market_relevant,
                 analyzed_at=datetime.now(timezone.utc),
             )
             db.add(score)
@@ -89,6 +90,7 @@ async def recalculate_index(db: AsyncSession, redis) -> None:
         select(Tweet, TweetScore)
         .join(TweetScore, Tweet.id == TweetScore.tweet_id)
         .where(Tweet.posted_at >= cutoff)
+        .where(TweetScore.market_relevant == true())
         .order_by(desc(Tweet.posted_at))
     )
     rows = result.all()
