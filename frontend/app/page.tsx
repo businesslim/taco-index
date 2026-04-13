@@ -5,7 +5,7 @@ import {
 } from "@/lib/api";
 import GaugeMeter from "@/components/GaugeMeter";
 import TweetFeed from "@/components/TweetFeed";
-import CoinPriceTicker from "@/components/CoinPriceTicker";
+import MarketTicker from "@/components/MarketTicker";
 import IndexHistoryChart from "@/components/IndexHistoryChart";
 
 export const revalidate = 60;
@@ -42,8 +42,8 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* 코인 가격 */}
-      <CoinPriceTicker />
+      {/* 시장 데이터 */}
+      <MarketTicker />
 
       {/* Index 이력 차트 */}
       <section className="bg-gray-900 rounded-2xl p-6">
