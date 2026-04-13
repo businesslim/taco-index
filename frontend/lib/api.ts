@@ -56,11 +56,15 @@ export interface MarketPrices {
 }
 
 export async function fetchMarketPrices(): Promise<MarketPrices> {
-  const res = await fetch(`${API_BASE}/api/market/prices`, {
-    next: { revalidate: 300 },
-  });
-  if (!res.ok) return { equities: [], commodities: [] };
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}/api/market/prices`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return { equities: [], commodities: [] };
+    return res.json();
+  } catch {
+    return { equities: [], commodities: [] };
+  }
 }
 
 export async function fetchIndexHistory(

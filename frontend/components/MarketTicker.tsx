@@ -1,4 +1,4 @@
-import { fetchMarketPrices, fetchRecentTweets, MarketAsset } from "@/lib/api";
+import { fetchMarketPrices, MarketAsset } from "@/lib/api";
 
 async function fetchCrypto(): Promise<MarketAsset[]> {
   try {
