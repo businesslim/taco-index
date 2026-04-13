@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     anthropic_api_key: str = "placeholder"
     twelve_data_api_key: str = ""
     finnhub_api_key: str = ""
+    truthsocial_username: str = ""
+    truthsocial_password: str = ""
     poll_interval_minutes: int = 15
     cors_origins: str = "http://localhost:3000"
 
