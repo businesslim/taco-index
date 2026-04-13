@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     anthropic_api_key: str = "placeholder"
     twelve_data_api_key: str = ""
+    finnhub_api_key: str = ""
     poll_interval_minutes: int = 15
     cors_origins: str = "http://localhost:3000"
 
