@@ -122,9 +122,9 @@ export default async function MarketTicker() {
   });
 
   const categories: Category[] = [
-    { title: "가상자산", assets: crypto },
-    { title: "미국 증시", assets: equities },
-    { title: "원자재", assets: commodities },
+    { title: "Crypto", assets: crypto },
+    { title: "US Equities", assets: equities },
+    { title: "Commodities", assets: commodities },
   ];
 
   return (
