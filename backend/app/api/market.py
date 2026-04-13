@@ -1,3 +1,5 @@
+import csv
+import io
 import json
 import asyncio
 import httpx
@@ -10,9 +12,9 @@ router = APIRouter(prefix="/api/market", tags=["market"])
 CACHE_KEY = "market:prices"
 CACHE_TTL = 300  # 5 minutes
 
-FINNHUB_INDICES = [
-    {"symbol": "^GSPC", "label": "S&P 500"},
-    {"symbol": "^NDX",  "label": "NASDAQ 100"},
+STOOQ_INDICES = [
+    {"symbol": "^SPX", "label": "S&P 500"},
+    {"symbol": "^NDX", "label": "NASDAQ 100"},
 ]
 
 
@@ -25,7 +27,7 @@ async def get_market_prices():
         return json.loads(cached)
 
     equities, commodities = await asyncio.gather(
-        _fetch_equities_finnhub(),
+        _fetch_equities_stooq(),
         _fetch_gold_twelve_data(),
     )
 
@@ -34,22 +36,28 @@ async def get_market_prices():
     return result
 
 
-async def _fetch_equities_finnhub() -> list:
+async def _fetch_equities_stooq() -> list:
     results = []
     async with httpx.AsyncClient(timeout=10) as client:
-        for idx in FINNHUB_INDICES:
+        for idx in STOOQ_INDICES:
             try:
                 resp = await client.get(
-                    "https://finnhub.io/api/v1/quote",
-                    params={"symbol": idx["symbol"], "token": settings.finnhub_api_key},
+                    "https://stooq.com/q/l/",
+                    params={"s": idx["symbol"], "f": "sd2t2ohlcv", "h": "", "e": "csv"},
                 )
                 resp.raise_for_status()
-                data = resp.json()
+                reader = csv.DictReader(io.StringIO(resp.text))
+                row = next(reader, None)
+                if not row or row.get("Close") in (None, "N/D", ""):
+                    continue
+                close = float(row["Close"])
+                open_ = float(row["Open"])
+                change_percent = ((close - open_) / open_ * 100) if open_ else 0.0
                 results.append({
                     "symbol": idx["symbol"],
                     "label": idx["label"],
-                    "price": float(data["c"]),
-                    "change_percent": float(data["dp"]),
+                    "price": close,
+                    "change_percent": round(change_percent, 2),
                 })
             except Exception:
                 continue
