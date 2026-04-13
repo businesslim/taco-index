@@ -1,22 +1,8 @@
 import re
-import httpx
 from datetime import datetime, timezone
-from app.config import settings
 
 TRUTH_SOCIAL_ACCOUNT_ID = "107780257626128497"
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Referer": "https://truthsocial.com/",
-    "Origin": "https://truthsocial.com",
-    "Sec-Fetch-Dest": "empty",
-    "Sec-Fetch-Mode": "cors",
-    "Sec-Fetch-Site": "same-origin",
-    "Connection": "keep-alive",
-}
+TRUTH_SOCIAL_API_URL = f"https://truthsocial.com/api/v1/accounts/{TRUTH_SOCIAL_ACCOUNT_ID}/statuses"
 
 
 def _strip_html(html: str) -> str:
@@ -80,11 +66,15 @@ def parse_mastodon_statuses(statuses: list) -> list[dict]:
 
 
 async def fetch_truth_social_posts(limit: int = 20) -> list[dict]:
-    """Cloudflare Worker 프록시를 통해 Truth Social 게시물을 가져온다."""
-    base_url = settings.truth_social_base_url.rstrip("/")
-    url = f"{base_url}/api/v1/accounts/{TRUTH_SOCIAL_ACCOUNT_ID}/statuses"
+    """curl_cffi로 Chrome TLS 핑거프린트를 흉내내 Cloudflare를 우회한다."""
+    from curl_cffi.requests import AsyncSession
 
-    async with httpx.AsyncClient(timeout=30, headers=HEADERS) as client:
-        response = await client.get(url, params={"limit": limit})
+    async with AsyncSession() as session:
+        response = await session.get(
+            TRUTH_SOCIAL_API_URL,
+            params={"limit": limit},
+            impersonate="chrome124",
+            timeout=30,
+        )
         response.raise_for_status()
     return parse_mastodon_statuses(response.json())
