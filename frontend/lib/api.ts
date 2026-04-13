@@ -43,6 +43,26 @@ export async function fetchRecentTweets(limit = 20): Promise<TweetWithScore[]> {
   return data.data;
 }
 
+export interface MarketAsset {
+  symbol: string;
+  label: string;
+  price: number;
+  change_percent: number;
+}
+
+export interface MarketPrices {
+  equities: MarketAsset[];
+  commodities: MarketAsset[];
+}
+
+export async function fetchMarketPrices(): Promise<MarketPrices> {
+  const res = await fetch(`${API_BASE}/api/market/prices`, {
+    next: { revalidate: 300 },
+  });
+  if (!res.ok) return { equities: [], commodities: [] };
+  return res.json();
+}
+
 export async function fetchIndexHistory(
   range: "7d" | "30d" | "all" = "7d"
 ): Promise<IndexHistoryPoint[]> {

@@ -8,6 +8,7 @@ from app.scheduler.jobs import start_scheduler, run_pipeline
 from app.api.index import router as index_router
 from app.api.tweets import router as tweets_router
 from app.api.bands import router as bands_router
+from app.api.market import router as market_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -28,6 +29,7 @@ app.add_middleware(
 app.include_router(index_router)
 app.include_router(tweets_router)
 app.include_router(bands_router)
+app.include_router(market_router)
 
 @app.get("/health")
 async def health():
