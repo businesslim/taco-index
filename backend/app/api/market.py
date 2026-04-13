@@ -9,11 +9,11 @@ router = APIRouter(prefix="/api/market", tags=["market"])
 CACHE_KEY = "market:prices"
 CACHE_TTL = 300  # 5 minutes
 
-SYMBOLS = "SPX,NDX,XAU/USD"
+SYMBOLS = "SPY,QQQ,XAU/USD"
 
 SYMBOL_META = {
-    "SPX":     {"label": "S&P 500",    "category": "equities"},
-    "NDX":     {"label": "NASDAQ 100", "category": "equities"},
+    "SPY":     {"label": "S&P 500",    "category": "equities"},
+    "QQQ":     {"label": "NASDAQ 100", "category": "equities"},
     "XAU/USD": {"label": "Gold",       "category": "commodities"},
 }
 
