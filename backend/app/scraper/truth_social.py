@@ -1,8 +1,10 @@
 import re
+import feedparser
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 
-TRUTH_SOCIAL_ACCOUNT_ID = "107780257626128497"
-TRUTH_SOCIAL_API_URL = f"https://truthsocial.com/api/v1/accounts/{TRUTH_SOCIAL_ACCOUNT_ID}/statuses"
+TRUMPSTRUTH_FEED_URL = "https://www.trumpstruth.org/feed"
+TRUTH_ORIGINAL_ID_TAG = "truth_originalid"
 
 
 def _strip_html(html: str) -> str:
@@ -14,7 +16,6 @@ def _strip_html(html: str) -> str:
 def parse_feed_entries(entries: list) -> list[dict]:
     """하위 호환성을 위해 유지 (테스트에서 사용)."""
     result = []
-    from email.utils import parsedate_to_datetime
     for entry in entries:
         try:
             content = entry.get("summary") or entry.get("description") or entry.get("title") or ""
@@ -39,6 +40,7 @@ def parse_feed_entries(entries: list) -> list[dict]:
 
 
 def parse_mastodon_statuses(statuses: list) -> list[dict]:
+    """Truth Social Mastodon API 응답을 표준화된 딕셔너리 리스트로 변환한다."""
     result = []
     for status in statuses:
         try:
@@ -66,15 +68,35 @@ def parse_mastodon_statuses(statuses: list) -> list[dict]:
 
 
 async def fetch_truth_social_posts(limit: int = 20) -> list[dict]:
-    """curl_cffi로 Chrome TLS 핑거프린트를 흉내내 Cloudflare를 우회한다."""
-    from curl_cffi.requests import AsyncSession
+    """trumpstruth.org RSS 피드로 Truth Social 포스트를 가져온다."""
+    feed = feedparser.parse(TRUMPSTRUTH_FEED_URL)
 
-    async with AsyncSession() as session:
-        response = await session.get(
-            TRUTH_SOCIAL_API_URL,
-            params={"limit": limit},
-            impersonate="chrome124",
-            timeout=30,
-        )
-        response.raise_for_status()
-    return parse_mastodon_statuses(response.json())
+    result = []
+    for entry in feed.entries[:limit]:
+        try:
+            # truth:originalId 태그에서 Truth Social 원본 ID 추출
+            tweet_id = getattr(entry, TRUTH_ORIGINAL_ID_TAG, None) or entry.get("guid", "")
+            if not tweet_id:
+                continue
+
+            content = _strip_html(entry.get("summary") or entry.get("title") or "")
+            if not content:
+                continue
+
+            pub_date = entry.get("published", "")
+            try:
+                posted_at = parsedate_to_datetime(pub_date) if pub_date else datetime.now(timezone.utc)
+            except Exception:
+                posted_at = datetime.now(timezone.utc)
+
+            result.append({
+                "source": "truth_social",
+                "tweet_id": str(tweet_id),
+                "content": content,
+                "posted_at": posted_at,
+                "raw_data": dict(entry),
+            })
+        except Exception:
+            continue
+
+    return result
