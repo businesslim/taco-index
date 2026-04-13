@@ -47,18 +47,19 @@ export default function TweetItem({ tweet, timeAgo }: Props) {
         </button>
       )}
       <div className="flex items-center gap-3 flex-wrap">
-        <span
-          className="text-sm font-bold px-3 py-1 rounded-full"
-          style={{
-            backgroundColor: tweet.band_color + "22",
-            color: tweet.band_color,
-            border: `1px solid ${tweet.band_color}44`,
-          }}
-        >
-          {tweet.final_score} · {tweet.band_label}
-        </span>
-        {!tweet.market_relevant && (
-          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-500 border border-gray-700">
+        {tweet.market_relevant ? (
+          <span
+            className="text-sm font-bold px-3 py-1 rounded-full"
+            style={{
+              backgroundColor: tweet.band_color + "22",
+              color: tweet.band_color,
+              border: `1px solid ${tweet.band_color}44`,
+            }}
+          >
+            {tweet.final_score} · {tweet.band_label}
+          </span>
+        ) : (
+          <span className="text-sm px-3 py-1 rounded-full bg-gray-800 text-gray-500 border border-gray-700">
             Off-topic
           </span>
         )}
