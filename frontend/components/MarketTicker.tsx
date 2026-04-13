@@ -74,7 +74,7 @@ function CategoryBox({ title, assets }: { title: string; assets: AssetItem[] }) 
     return (
       <div className="bg-gray-900 rounded-2xl p-5 flex flex-col gap-3">
         <h3 className="text-xs text-gray-500 uppercase tracking-wide font-medium">{title}</h3>
-        <p className="text-gray-600 text-sm">데이터를 불러올 수 없습니다</p>
+        <p className="text-gray-600 text-sm">Data unavailable</p>
       </div>
     );
   }
