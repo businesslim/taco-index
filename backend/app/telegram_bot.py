@@ -62,9 +62,9 @@ async def cmd_index(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     emoji = _band_emoji(band_label)
 
     await update.message.reply_text(
-        f"🌮 *TACO Index: {index_value} / 100*\n"
-        f"현재 시장 심리: *{band_label}*\n\n"
-        f"자세히 보기 → taco-index.com",
+        f"🌮 *TACO Index: {index_value}*\n"
+        f"*{band_label}*\n\n"
+        f"🔗 taco-index.com",
         parse_mode="Markdown",
     )
 
@@ -86,7 +86,7 @@ async def notify_subscribers(band_label: str, index_value: int, new_posts: int) 
         f"Score: *{index_value}*\n"
         f"Band: *{band_label}*\n\n"
         f"{post_line}"
-        f"자세히 보기 → taco-index.com"
+        f"🔗 taco-index.com"
     )
 
     from telegram import Bot
