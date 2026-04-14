@@ -7,6 +7,7 @@ import GaugeMeter from "@/components/GaugeMeter";
 import TweetFeed from "@/components/TweetFeed";
 import MarketTicker from "@/components/MarketTicker";
 import IndexHistoryChart from "@/components/IndexHistoryChart";
+import BandLegend from "@/components/BandLegend";
 
 export const revalidate = 60;
 
@@ -55,6 +56,9 @@ export default async function HomePage() {
         <h2 className="text-lg font-semibold mb-4">Index History</h2>
         <IndexHistoryChart data={history} />
       </section>
+
+      {/* 밴드 범례 */}
+      <BandLegend />
 
       {/* 트윗 피드 */}
       <section className="bg-gray-900 rounded-2xl p-6">
