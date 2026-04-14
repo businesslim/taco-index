@@ -81,13 +81,11 @@ async def notify_subscribers(band_label: str, index_value: int, new_posts: int) 
         return
 
     emoji = _band_emoji(band_label)
-    post_line = f"새 포스트 {new_posts}건 분석 완료\n\n" if new_posts > 0 else ""
     text = (
-        f"{emoji} *TACO Index Update*\n\n"
+        f"🌮 *TACO Index Update*\n\n"
         f"Score: *{index_value}*\n"
         f"Band: *{band_label}*\n\n"
-        f"{post_line}"
-        f"🔗 taco-index.com"
+        f"For more details, visit 👉 taco-index.com"
     )
 
     from telegram import Bot
