@@ -25,6 +25,11 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col gap-8">
+      {/* 설명 문구 */}
+      <p className="text-gray-400 text-sm leading-relaxed">
+        The TACO Index analyzes Donald Trump&apos;s Truth Social activity to gauge financial market sentiment. Each post is scored for market relevance and direction, giving you a real-time pulse on how Trump&apos;s words move crypto, equities, and commodities.
+      </p>
+
       {/* TACO Index 게이지 */}
       <section className="bg-gray-900 rounded-2xl p-8 flex flex-col items-center gap-2">
         <GaugeMeter
