@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     truth_social_base_url: str = "https://truthsocial.com"
     poll_interval_minutes: int = 15
     cors_origins: str = "http://localhost:3000"
+    telegram_bot_token: str = ""
 
     @field_validator("database_url", mode="before")
     @classmethod

@@ -32,8 +32,8 @@ async def run_pipeline() -> None:
         logger.error(f"Scraping failed: {e}")
 
     # 2. 새 트윗 필터링 + 분석 + 저장
+    new_count = 0
     async with AsyncSessionLocal() as db:
-        new_count = 0
         for post in posts:
             if await is_seen(redis, post["tweet_id"]):
                 continue
@@ -80,7 +80,15 @@ async def run_pipeline() -> None:
         logger.info(f"Saved {new_count} new tweets")
 
         # 3. TACO Index 재계산 (새 포스트 없어도 항상 실행)
-        await recalculate_index(db, redis)
+        band_label, index_value = await recalculate_index(db, redis)
+
+    # 4. 새 포스트가 있을 때만 텔레그램 알림 발송
+    if new_count > 0:
+        try:
+            from app.telegram_bot import notify_subscribers
+            await notify_subscribers(band_label, index_value, new_count)
+        except Exception as e:
+            logger.error(f"Telegram notify failed: {e}")
 
 
 async def recalculate_index(db: AsyncSession, redis) -> None:
@@ -115,6 +123,7 @@ async def recalculate_index(db: AsyncSession, redis) -> None:
     # Redis 캐시 업데이트 (1시간 TTL)
     await redis.set(TACO_INDEX_CACHE_KEY, f"{index_value}:{band_label}", ex=3600)
     logger.info(f"TACO Index updated: {index_value} ({band_label})")
+    return band_label, index_value
 
 
 def start_scheduler():

@@ -9,11 +9,13 @@ from app.api.index import router as index_router
 from app.api.tweets import router as tweets_router
 from app.api.bands import router as bands_router
 from app.api.market import router as market_router
+from app.telegram_bot import run_bot_polling
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     start_scheduler()
     asyncio.create_task(run_pipeline())  # 서버 시작 시 즉시 1회 실행
+    asyncio.create_task(run_bot_polling())
     yield
     await close_redis()
 
