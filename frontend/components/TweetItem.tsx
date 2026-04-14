@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { TweetWithScore } from "@/lib/api";
+import TacoIcon from "@/components/TacoIcon";
 
 const COLLAPSE_THRESHOLD = 280;
 
@@ -49,13 +50,14 @@ export default function TweetItem({ tweet, timeAgo }: Props) {
       <div className="flex items-center gap-3 flex-wrap">
         {tweet.market_relevant ? (
           <span
-            className="text-sm font-bold px-3 py-1 rounded-full"
+            className="inline-flex items-center gap-1.5 text-sm font-bold px-3 py-1 rounded-full"
             style={{
               backgroundColor: tweet.band_color + "22",
               color: tweet.band_color,
               border: `1px solid ${tweet.band_color}44`,
             }}
           >
+            <TacoIcon bandLabel={tweet.band_label} size={24} className="shrink-0" />
             {tweet.final_score} · {tweet.band_label}
           </span>
         ) : (

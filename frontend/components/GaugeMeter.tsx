@@ -1,5 +1,7 @@
 "use client";
 
+import TacoIcon from "@/components/TacoIcon";
+
 interface GaugeMeterProps {
   value: number; // 0~100
   label: string;
@@ -73,7 +75,8 @@ export default function GaugeMeter({ value, label, color }: GaugeMeterProps) {
         />
         <circle cx={cx} cy={cy} r="5" fill="white" />
       </svg>
-      <div className="text-center">
+      <div className="text-center flex flex-col items-center gap-2">
+        <TacoIcon bandLabel={label} />
         <p className="text-6xl font-bold" style={{ color }}>
           {v}
         </p>
