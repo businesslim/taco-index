@@ -35,10 +35,11 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     redis = await get_redis()
     await redis.sadd(SUBSCRIBERS_KEY, chat_id)
     await update.message.reply_text(
-        "🌮 *TACO Index 알림 구독 완료!*\n\n"
-        "Trump이 Truth Social에 포스팅하고 지수가 변할 때마다 알려드릴게요.\n\n"
-        "• `/index` — 현재 지수 조회\n"
-        "• `/stop` — 구독 해제",
+        "🌮 *Welcome to TACO Index!*\n\n"
+        "The TACO Index analyzes Donald Trump's Truth Social activity to gauge financial market sentiment. "
+        "Each post is scored for market relevance and direction, giving you a real-time pulse on how Trump's words move crypto, equities, and commodities.\n\n"
+        "• `/index` — Get current index\n"
+        "• `/stop` — Unsubscribe",
         parse_mode="Markdown",
     )
 
