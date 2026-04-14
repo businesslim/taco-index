@@ -14,7 +14,7 @@ export default async function HomePage() {
   const [currentIndex, recentTweets, history] = await Promise.all([
     fetchCurrentIndex().catch(() => ({
       index_value: 50,
-      band_label: "Neutral",
+      band_label: "Cooking...",
       band_color: "#FFD700",
       tweet_count: 0,
       calculated_at: null,

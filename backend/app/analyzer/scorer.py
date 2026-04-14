@@ -8,11 +8,11 @@ KEYWORD_WEIGHT = 0.3
 HALF_LIFE_HOURS = 12.0  # 12시간마다 가중치가 절반으로 감소
 
 BANDS = [
-    (0,  20,  "Extreme Bearish"),
-    (21, 40,  "Bearish"),
-    (41, 60,  "Neutral"),
-    (61, 80,  "Bullish"),
-    (81, 100, "Extreme Bullish"),
+    (0,  20,  "Taco de Habanero"),
+    (21, 40,  "Taco de Chorizo"),
+    (41, 60,  "Cooking..."),
+    (61, 80,  "Taco de Chicken"),
+    (81, 100, "Taco de CHICKEN"),
 ]
 
 class ScoredTweet(TypedDict):

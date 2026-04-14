@@ -9,11 +9,11 @@ from app.analyzer.scorer import get_band_label
 router = APIRouter(prefix="/api/tweets", tags=["tweets"])
 
 BAND_COLORS = {
-    "Extreme Bearish": "#FF4444",
-    "Bearish": "#FF8C00",
-    "Neutral": "#FFD700",
-    "Bullish": "#32CD32",
-    "Extreme Bullish": "#008000",
+    "Taco de Habanero": "#FF4444",
+    "Taco de Chorizo":  "#FF8C00",
+    "Cooking...":       "#FFD700",
+    "Taco de Chicken":  "#32CD32",
+    "Taco de CHICKEN":  "#008000",
 }
 
 @router.get("/recent", response_model=RecentTweetsResponse)

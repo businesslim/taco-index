@@ -32,16 +32,16 @@ def test_taco_index_single_tweet():
     assert 60 <= index <= 90
 
 def test_get_band_label_extreme_bearish():
-    assert get_band_label(10) == "Extreme Bearish"
+    assert get_band_label(10) == "Taco de Habanero"
 
 def test_get_band_label_bearish():
-    assert get_band_label(30) == "Bearish"
+    assert get_band_label(30) == "Taco de Chorizo"
 
 def test_get_band_label_neutral():
-    assert get_band_label(50) == "Neutral"
+    assert get_band_label(50) == "Cooking..."
 
 def test_get_band_label_bullish():
-    assert get_band_label(70) == "Bullish"
+    assert get_band_label(70) == "Taco de Chicken"
 
 def test_get_band_label_extreme_bullish():
-    assert get_band_label(90) == "Extreme Bullish"
+    assert get_band_label(90) == "Taco de CHICKEN"

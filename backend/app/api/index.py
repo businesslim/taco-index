@@ -11,11 +11,11 @@ from app.analyzer.scorer import get_band_label
 router = APIRouter(prefix="/api/index", tags=["index"])
 
 BAND_COLORS = {
-    "Extreme Bearish": "#FF4444",
-    "Bearish": "#FF8C00",
-    "Neutral": "#FFD700",
-    "Bullish": "#32CD32",
-    "Extreme Bullish": "#008000",
+    "Taco de Habanero": "#FF4444",
+    "Taco de Chorizo":  "#FF8C00",
+    "Cooking...":       "#FFD700",
+    "Taco de Chicken":  "#32CD32",
+    "Taco de CHICKEN":  "#008000",
 }
 
 @router.get("/current", response_model=CurrentIndexResponse)
@@ -44,8 +44,8 @@ async def get_current_index(
     if latest is None:
         return CurrentIndexResponse(
             index_value=50,
-            band_label="Neutral",
-            band_color=BAND_COLORS["Neutral"],
+            band_label="Cooking...",
+            band_color=BAND_COLORS["Cooking..."],
             tweet_count=0,
             calculated_at=None,
         )
