@@ -23,7 +23,7 @@ const BANDS = [
     color: "#FFD700",
   },
   {
-    label: "Taco de Chicken",
+    label: "Taco de Frijoles",
     range: "61 – 80",
     sentiment: "Bullish",
     description: "Positive sentiment building. Risk assets showing upward momentum.",

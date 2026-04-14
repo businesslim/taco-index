@@ -11,7 +11,7 @@ BANDS = [
     (0,  20,  "Taco de Habanero"),
     (21, 40,  "Taco de Chorizo"),
     (41, 60,  "Cooking..."),
-    (61, 80,  "Taco de Chicken"),
+    (61, 80,  "Taco de Frijoles"),
     (81, 100, "Taco de CHICKEN"),
 ]
 

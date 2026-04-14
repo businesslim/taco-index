@@ -41,7 +41,7 @@ def test_get_band_label_neutral():
     assert get_band_label(50) == "Cooking..."
 
 def test_get_band_label_bullish():
-    assert get_band_label(70) == "Taco de Chicken"
+    assert get_band_label(70) == "Taco de Frijoles"
 
 def test_get_band_label_extreme_bullish():
     assert get_band_label(90) == "Taco de CHICKEN"

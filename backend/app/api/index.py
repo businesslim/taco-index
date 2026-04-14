@@ -14,7 +14,7 @@ BAND_COLORS = {
     "Taco de Habanero": "#FF4444",
     "Taco de Chorizo":  "#FF8C00",
     "Cooking...":       "#FFD700",
-    "Taco de Chicken":  "#32CD32",
+    "Taco de Frijoles": "#32CD32",
     "Taco de CHICKEN":  "#008000",
 }
 

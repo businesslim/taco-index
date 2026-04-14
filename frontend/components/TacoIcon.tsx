@@ -54,8 +54,8 @@ const TACO_CONTENTS: Record<string, { label: string; content: React.ReactNode }>
       </>
     ),
   },
-  "Taco de Chicken": {
-    label: "Taco de Chicken",
+  "Taco de Frijoles": {
+    label: "Taco de Frijoles",
     content: (
       <>
         {/* Shell */}
