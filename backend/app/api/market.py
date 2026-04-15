@@ -126,25 +126,39 @@ async def _fetch_btc_history(range: str) -> list:
 
 
 async def _fetch_spx_history(range: str) -> list:
+    import logging
+    logger = logging.getLogger(__name__)
+
     interval_map = {"1d": ("1h", "1d"), "7d": ("1d", "7d"), "30d": ("1d", "1mo")}
     interval, yf_range = interval_map[range]
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.get(
-                "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC",
-                params={"interval": interval, "range": yf_range},
-                headers={"User-Agent": "Mozilla/5.0"},
-            )
-            resp.raise_for_status()
-            data = resp.json()
-        result_data = data["chart"]["result"][0]
-        timestamps = result_data["timestamp"]
-        closes = result_data["indicators"]["quote"][0]["close"]
-        bucket_interval = "hourly" if range == "1d" else "daily"
-        pairs = [(ts * 1000, price) for ts, price in zip(timestamps, closes) if price is not None]
-        return _aggregate_to_buckets(pairs, bucket_interval)
-    except Exception:
-        return []
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    for base_url in [
+        "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC",
+        "https://query2.finance.yahoo.com/v8/finance/chart/%5EGSPC",
+    ]:
+        try:
+            async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
+                resp = await client.get(
+                    base_url,
+                    params={"interval": interval, "range": yf_range},
+                    headers=headers,
+                )
+                resp.raise_for_status()
+                data = resp.json()
+            result_data = data["chart"]["result"][0]
+            timestamps = result_data["timestamp"]
+            closes = result_data["indicators"]["quote"][0]["close"]
+            bucket_interval = "hourly" if range == "1d" else "daily"
+            pairs = [(ts * 1000, price) for ts, price in zip(timestamps, closes) if price is not None]
+            return _aggregate_to_buckets(pairs, bucket_interval)
+        except Exception as e:
+            logger.error(f"SPX history fetch failed ({base_url}): {e}")
+            continue
+    return []
 
 
 async def _fetch_gold_history(range: str) -> list:
