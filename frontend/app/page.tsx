@@ -1,7 +1,6 @@
 import {
   fetchCurrentIndex,
   fetchRecentTweets,
-  fetchIndexHistory,
 } from "@/lib/api";
 import GaugeMeter from "@/components/GaugeMeter";
 import TweetFeed from "@/components/TweetFeed";
@@ -12,7 +11,7 @@ import BandLegend from "@/components/BandLegend";
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [currentIndex, recentTweets, history] = await Promise.all([
+  const [currentIndex, recentTweets] = await Promise.all([
     fetchCurrentIndex().catch(() => ({
       index_value: 50,
       band_label: "Cooking...",
@@ -22,7 +21,6 @@ export default async function HomePage() {
       last_post_at: null,
     })),
     fetchRecentTweets(10).catch(() => []),
-    fetchIndexHistory("7d").catch(() => []),
   ]);
 
   return (
@@ -65,7 +63,7 @@ export default async function HomePage() {
       {/* Index 이력 차트 */}
       <section className="bg-gray-900 rounded-2xl p-6">
         <h2 className="text-lg font-semibold mb-4">Index History</h2>
-        <IndexHistoryChart data={history} />
+        <IndexHistoryChart />
       </section>
 
       {/* 밴드 범례 */}

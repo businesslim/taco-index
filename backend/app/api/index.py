@@ -75,11 +75,14 @@ async def get_current_index(
 
 @router.get("/history", response_model=IndexHistoryResponse)
 async def get_index_history(
-    range: str = Query("7d", pattern="^(7d|30d|all)$"),
+    range: str = Query("7d", pattern="^(1d|7d|30d|all)$"),
     db: AsyncSession = Depends(get_db),
 ):
     query = select(TacoIndexHistory).order_by(desc(TacoIndexHistory.calculated_at))
-    if range == "7d":
+    if range == "1d":
+        cutoff = datetime.now(timezone.utc) - timedelta(days=1)
+        query = query.where(TacoIndexHistory.calculated_at >= cutoff)
+    elif range == "7d":
         cutoff = datetime.now(timezone.utc) - timedelta(days=7)
         query = query.where(TacoIndexHistory.calculated_at >= cutoff)
     elif range == "30d":

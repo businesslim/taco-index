@@ -69,12 +69,37 @@ export async function fetchMarketPrices(): Promise<MarketPrices> {
 }
 
 export async function fetchIndexHistory(
-  range: "7d" | "30d" | "all" = "7d"
+  range: "1d" | "7d" | "30d" | "all" = "7d"
 ): Promise<IndexHistoryPoint[]> {
   const res = await fetch(`${API_BASE}/api/index/history?range=${range}`, {
-    next: { revalidate: 60 },
+    cache: "no-store",
   });
   if (!res.ok) throw new Error("Failed to fetch history");
   const data = await res.json();
   return data.data;
+}
+
+export interface AssetPoint {
+  t: string;
+  price: number;
+}
+
+export interface AssetHistory {
+  btc: AssetPoint[];
+  spx: AssetPoint[];
+  gold: AssetPoint[];
+}
+
+export async function fetchAssetHistory(
+  range: "1d" | "7d" | "30d" = "7d"
+): Promise<AssetHistory> {
+  try {
+    const res = await fetch(`${API_BASE}/api/market/history?range=${range}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return { btc: [], spx: [], gold: [] };
+    return res.json();
+  } catch {
+    return { btc: [], spx: [], gold: [] };
+  }
 }

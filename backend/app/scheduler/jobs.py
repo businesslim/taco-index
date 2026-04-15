@@ -1,4 +1,5 @@
 import logging
+import httpx
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, desc, true
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +13,7 @@ from app.analyzer import (
 )
 from app.models.tweet import Tweet, TweetScore
 from app.models.index import TacoIndexHistory
+from app.models.asset_price import AssetPriceHistory
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -82,7 +84,10 @@ async def run_pipeline() -> None:
         # 3. TACO Index 재계산 (새 포스트 없어도 항상 실행)
         band_label, index_value = await recalculate_index(db, redis)
 
-    # 4. 새 포스트가 있을 때만 텔레그램 알림 발송
+    # 4. 자산 가격 DB 저장 (자체 히스토리 수집)
+    await save_asset_prices()
+
+    # 5. 새 포스트가 있을 때만 텔레그램 알림 발송
     if new_count > 0:
         try:
             from app.telegram_bot import notify_subscribers
@@ -124,6 +129,62 @@ async def recalculate_index(db: AsyncSession, redis) -> None:
     await redis.set(TACO_INDEX_CACHE_KEY, f"{index_value}:{band_label}", ex=3600)
     logger.info(f"TACO Index updated: {index_value} ({band_label})")
     return band_label, index_value
+
+
+async def save_asset_prices() -> None:
+    """BTC, SPX, Gold 현재가를 DB에 저장한다 (자체 히스토리 수집)."""
+    now = datetime.now(timezone.utc)
+    prices = []
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            # BTC (CoinGecko simple price)
+            try:
+                resp = await client.get(
+                    "https://api.coingecko.com/api/v3/simple/price",
+                    params={"ids": "bitcoin", "vs_currencies": "usd"},
+                )
+                btc_price = resp.json()["bitcoin"]["usd"]
+                prices.append(AssetPriceHistory(symbol="BTC", price=btc_price, recorded_at=now))
+            except Exception as e:
+                logger.warning(f"BTC price fetch failed: {e}")
+
+            # SPX (Stooq)
+            try:
+                import csv, io
+                resp = await client.get(
+                    "https://stooq.com/q/l/",
+                    params={"s": "^spx", "f": "sd2t2ohlcv", "h": "", "e": "csv"},
+                )
+                reader = csv.DictReader(io.StringIO(resp.text))
+                row = next(reader, None)
+                if row and row.get("Close") not in (None, "N/D", ""):
+                    prices.append(AssetPriceHistory(symbol="SPX", price=float(row["Close"]), recorded_at=now))
+            except Exception as e:
+                logger.warning(f"SPX price fetch failed: {e}")
+
+            # Gold (Twelve Data)
+            try:
+                resp = await client.get(
+                    "https://api.twelvedata.com/quote",
+                    params={"symbol": "XAU/USD", "apikey": settings.twelve_data_api_key},
+                )
+                data = resp.json()
+                if "close" in data:
+                    prices.append(AssetPriceHistory(symbol="GOLD", price=float(data["close"]), recorded_at=now))
+            except Exception as e:
+                logger.warning(f"Gold price fetch failed: {e}")
+
+    except Exception as e:
+        logger.error(f"save_asset_prices failed: {e}")
+        return
+
+    if prices:
+        async with AsyncSessionLocal() as db:
+            for p in prices:
+                db.add(p)
+            await db.commit()
+        logger.info(f"Saved {len(prices)} asset prices")
 
 
 def start_scheduler():

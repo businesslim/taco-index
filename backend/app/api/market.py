@@ -3,7 +3,8 @@ import io
 import json
 import asyncio
 import httpx
-from fastapi import APIRouter
+from datetime import datetime, timedelta, timezone
+from fastapi import APIRouter, Depends, Query
 from app.redis_client import get_redis
 from app.config import settings
 
@@ -62,6 +63,116 @@ async def _fetch_equities_stooq() -> list:
             except Exception:
                 continue
     return results
+
+
+@router.get("/history")
+async def get_market_history(
+    range: str = Query("7d", pattern="^(1d|7d|30d)$"),
+    redis=Depends(get_redis),
+):
+    cache_key = f"market:history:{range}"
+    cached = await redis.get(cache_key)
+    if cached:
+        return json.loads(cached)
+
+    btc, spx, gold = await asyncio.gather(
+        _fetch_btc_history(range),
+        _fetch_spx_history(range),
+        _fetch_gold_history(range),
+    )
+
+    result = {"btc": btc, "spx": spx, "gold": gold}
+    ttl = 300 if range == "1d" else 1800
+    await redis.set(cache_key, json.dumps(result), ex=ttl)
+    return result
+
+
+def _bucket_key(ts_ms: float, interval: str) -> str:
+    dt = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc)
+    if interval == "hourly":
+        return dt.strftime("%Y-%m-%dT%H:00:00Z")
+    return dt.strftime("%Y-%m-%dT00:00:00Z")
+
+
+def _aggregate_to_buckets(prices: list[tuple], interval: str) -> list[dict]:
+    buckets: dict[str, list[float]] = {}
+    for ts_ms, price in prices:
+        key = _bucket_key(ts_ms, interval)
+        buckets.setdefault(key, []).append(price)
+    return [
+        {"t": k, "price": round(sum(v) / len(v), 2)}
+        for k, v in sorted(buckets.items())
+    ]
+
+
+async def _fetch_btc_history(range: str) -> list:
+    days_map = {"1d": 2, "7d": 7, "30d": 30}
+    days = days_map[range]
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart",
+                params={"vs_currency": "usd", "days": days},
+            )
+            resp.raise_for_status()
+            raw_prices = resp.json().get("prices", [])
+
+        cutoff_ms = (datetime.now(timezone.utc) - timedelta(days=int(range[:-1]))).timestamp() * 1000
+        filtered = [(ts, p) for ts, p in raw_prices if ts >= cutoff_ms]
+        interval = "hourly" if range == "1d" else "daily"
+        return _aggregate_to_buckets(filtered, interval)
+    except Exception:
+        return []
+
+
+async def _fetch_spx_history(range: str) -> list:
+    days = int(range[:-1])
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y%m%d")
+    today = datetime.now(timezone.utc).strftime("%Y%m%d")
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                "https://stooq.com/q/d/l/",
+                params={"s": "^spx", "i": "d", "d1": cutoff, "d2": today},
+            )
+            resp.raise_for_status()
+        reader = csv.DictReader(io.StringIO(resp.text))
+        result = []
+        for row in reader:
+            if row.get("Close") in (None, "N/D", ""):
+                continue
+            result.append({"t": f"{row['Date']}T00:00:00Z", "price": float(row["Close"])})
+        return result
+    except Exception:
+        return []
+
+
+async def _fetch_gold_history(range: str) -> list:
+    interval_map = {"1d": ("1h", 24), "7d": ("1day", 7), "30d": ("1day", 30)}
+    interval, outputsize = interval_map[range]
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                "https://api.twelvedata.com/time_series",
+                params={
+                    "symbol": "XAU/USD",
+                    "interval": interval,
+                    "outputsize": outputsize,
+                    "apikey": settings.twelve_data_api_key,
+                    "order": "ASC",
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+        if "code" in data or "values" not in data:
+            return []
+        return [
+            {"t": v["datetime"].replace(" ", "T") + ("Z" if "+" not in v["datetime"] else ""),
+             "price": float(v["close"])}
+            for v in data["values"]
+        ]
+    except Exception:
+        return []
 
 
 async def _fetch_gold_twelve_data() -> list:
