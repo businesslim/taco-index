@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 
 export const metadata: Metadata = {
@@ -26,6 +27,7 @@ export default function RootLayout({
         </header>
         <main className="max-w-5xl mx-auto px-6 py-8">{children}</main>
       </body>
+      <GoogleAnalytics gaId="G-F5LSGKHT55" />
     </html>
   );
 }
