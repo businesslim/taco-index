@@ -124,13 +124,17 @@ export default function IndexHistoryChart() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchIndexHistory(range), fetchAssetHistory(range)]).then(
-      ([idx, asset]) => {
+    Promise.all([fetchIndexHistory(range), fetchAssetHistory(range)])
+      .then(([idx, asset]) => {
         setIndexData(idx);
         setAssetData(asset);
+      })
+      .catch((err) => {
+        console.error("IndexHistoryChart fetch failed:", err);
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    );
+      });
   }, [range]);
 
   const by: Granularity = range === "1d" ? "hour" : "day";

@@ -71,12 +71,16 @@ export async function fetchMarketPrices(): Promise<MarketPrices> {
 export async function fetchIndexHistory(
   range: "1d" | "7d" | "30d" | "all" = "7d"
 ): Promise<IndexHistoryPoint[]> {
-  const res = await fetch(`${API_BASE}/api/index/history?range=${range}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error("Failed to fetch history");
-  const data = await res.json();
-  return data.data;
+  try {
+    const res = await fetch(`${API_BASE}/api/index/history?range=${range}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export interface AssetPoint {
