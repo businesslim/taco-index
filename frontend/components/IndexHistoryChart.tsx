@@ -18,7 +18,6 @@ import {
   fetchIndexHistory,
   fetchAssetHistory,
 } from "@/lib/api";
-import { Button } from "@/components/ui/button";
 
 type Range = "1d" | "7d" | "30d";
 type Granularity = "hour" | "day";
@@ -182,15 +181,17 @@ export default function IndexHistoryChart() {
         {/* Period tabs */}
         <div className="flex gap-1 bg-muted rounded-lg p-1">
           {RANGE_OPTIONS.map((opt) => (
-            <Button
+            <button
               key={opt.value}
-              size="sm"
-              variant={range === opt.value ? "secondary" : "ghost"}
               onClick={() => setRange(opt.value)}
-              className="rounded-md"
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                range === opt.value
+                  ? "bg-foreground/10 text-foreground ring-1 ring-foreground/20"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               {opt.label}
-            </Button>
+            </button>
           ))}
         </div>
 
