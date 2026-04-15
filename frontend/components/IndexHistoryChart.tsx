@@ -226,9 +226,31 @@ export default function IndexHistoryChart() {
             margin={{ top: 5, right: showRightAxis ? 55 : 10, left: -20, bottom: 5 }}
           >
             <defs>
-              <linearGradient id="tacoGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#32CD32" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#32CD32" stopOpacity={0} />
+              {/*
+                gradientUnits="userSpaceOnUse" + y1=5, y2=283:
+                chart height=288, top/bottom margin=5 → drawing area y: 5~283
+                value=100→y=5, 80→y=61, 60→y=116, 40→y=172, 20→y=227, 0→y=283
+                → offset 20%=value80, 40%=value60, 60%=value40, 80%=value20
+              */}
+              <linearGradient id="tacoStrokeGradient" gradientUnits="userSpaceOnUse" x1="0" y1="5" x2="0" y2="283">
+                <stop offset="0%"   stopColor="#008000" />
+                <stop offset="20%"  stopColor="#008000" />
+                <stop offset="20%"  stopColor="#32CD32" />
+                <stop offset="40%"  stopColor="#32CD32" />
+                <stop offset="40%"  stopColor="#FFD700" />
+                <stop offset="60%"  stopColor="#FFD700" />
+                <stop offset="60%"  stopColor="#FF8C00" />
+                <stop offset="80%"  stopColor="#FF8C00" />
+                <stop offset="80%"  stopColor="#FF4444" />
+                <stop offset="100%" stopColor="#FF4444" />
+              </linearGradient>
+              <linearGradient id="tacoFillGradient" gradientUnits="userSpaceOnUse" x1="0" y1="5" x2="0" y2="283">
+                <stop offset="0%"   stopColor="#008000" stopOpacity={0.15} />
+                <stop offset="20%"  stopColor="#32CD32" stopOpacity={0.12} />
+                <stop offset="40%"  stopColor="#FFD700" stopOpacity={0.08} />
+                <stop offset="60%"  stopColor="#FF8C00" stopOpacity={0.06} />
+                <stop offset="80%"  stopColor="#FF4444" stopOpacity={0.04} />
+                <stop offset="100%" stopColor="#FF4444" stopOpacity={0}    />
               </linearGradient>
             </defs>
 
@@ -300,11 +322,11 @@ export default function IndexHistoryChart() {
               yAxisId="left"
               type="monotone"
               dataKey="tacoIndex"
-              stroke="#32CD32"
-              fill="url(#tacoGradient)"
+              stroke="url(#tacoStrokeGradient)"
+              fill="url(#tacoFillGradient)"
               strokeWidth={2}
               dot={false}
-              activeDot={{ r: 4, fill: "#32CD32" }}
+              activeDot={{ r: 4, fill: "#FFD700" }}
               connectNulls
             />
 
@@ -331,7 +353,12 @@ export default function IndexHistoryChart() {
       {/* Legend */}
       <div className="flex gap-4 mt-3 flex-wrap justify-end">
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-0.5 bg-green-400" />
+          <div
+            className="w-4 h-0.5 rounded"
+            style={{
+              background: "linear-gradient(to right, #FF4444, #FF8C00, #FFD700, #32CD32, #008000)",
+            }}
+          />
           <span className="text-xs text-gray-500">TACO Index (0–100)</span>
         </div>
         {ASSET_CONFIG.filter((a) => assets[a.key]).map(({ key, label, color }) => (
