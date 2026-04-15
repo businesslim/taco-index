@@ -126,23 +126,23 @@ async def _fetch_btc_history(range: str) -> list:
 
 
 async def _fetch_spx_history(range: str) -> list:
-    days = int(range[:-1])
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y%m%d")
-    today = datetime.now(timezone.utc).strftime("%Y%m%d")
+    interval_map = {"1d": ("1h", "1d"), "7d": ("1d", "7d"), "30d": ("1d", "1mo")}
+    interval, yf_range = interval_map[range]
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.get(
-                "https://stooq.com/q/d/l/",
-                params={"s": "^spx", "i": "d", "d1": cutoff, "d2": today},
+                "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC",
+                params={"interval": interval, "range": yf_range},
+                headers={"User-Agent": "Mozilla/5.0"},
             )
             resp.raise_for_status()
-        reader = csv.DictReader(io.StringIO(resp.text))
-        result = []
-        for row in reader:
-            if row.get("Close") in (None, "N/D", ""):
-                continue
-            result.append({"t": f"{row['Date']}T00:00:00Z", "price": float(row["Close"])})
-        return result
+            data = resp.json()
+        result_data = data["chart"]["result"][0]
+        timestamps = result_data["timestamp"]
+        closes = result_data["indicators"]["quote"][0]["close"]
+        bucket_interval = "hourly" if range == "1d" else "daily"
+        pairs = [(ts * 1000, price) for ts, price in zip(timestamps, closes) if price is not None]
+        return _aggregate_to_buckets(pairs, bucket_interval)
     except Exception:
         return []
 
