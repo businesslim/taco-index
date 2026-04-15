@@ -3,9 +3,9 @@ from datetime import datetime, timedelta, timezone
 from app.analyzer.scorer import compute_final_score, compute_taco_index, get_band_label
 
 def test_final_score_weights():
-    # LLM 0.7, keyword 0.3
+    # LLM 0.85, keyword 0.15
     score = compute_final_score(llm_score=80, keyword_score=40)
-    assert score == 68  # round(80*0.7 + 40*0.3) = round(56+12) = 68
+    assert score == 74  # round(80*0.85 + 40*0.15) = round(68+6) = 74
 
 def test_final_score_clamps_high():
     assert compute_final_score(110, 110) == 100

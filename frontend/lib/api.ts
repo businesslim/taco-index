@@ -6,6 +6,7 @@ export interface CurrentIndex {
   band_color: string;
   tweet_count: number;
   calculated_at: string | null;
+  last_post_at: string | null;
 }
 
 export interface TweetWithScore {

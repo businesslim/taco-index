@@ -1,18 +1,33 @@
 BULLISH_KEYWORDS = [
-    "bitcoin", "btc", "crypto", "cryptocurrency", "blockchain",
-    "deal", "great", "win", "winning", "boom", "bull", "moon",
-    "approve", "approved", "support", "freedom", "rich", "wealth",
-    "opportunity", "growth", "rise", "buy", "invest", "innovation",
-    "deregulate", "deregulation", "pro-crypto", "digital asset",
+    # 크립토/디지털 자산
+    "bitcoin", "btc", "crypto", "cryptocurrency", "blockchain", "digital asset",
+    "deregulate", "deregulation", "pro-crypto",
+    # 주식/경제 일반
+    "deal", "trade deal", "agreement", "growth", "recovery", "surplus",
+    "jobs", "employment", "rate cut", "stimulus", "boom", "rally",
+    "earnings", "profit", "innovation", "opportunity",
+    # 원자재/안전자산
+    "gold", "silver", "oil", "energy",
+    # 시장 심리
+    "great", "win", "winning", "strong", "approve", "approved",
+    "support", "freedom", "wealth",
 ]
 
 BEARISH_KEYWORDS = [
-    "tariff", "tariffs", "ban", "banned", "sanction", "sanctions",
-    "war", "crash", "fake", "fraud", "illegal", "crackdown",
-    "investigation", "restrict", "restriction", "block", "blocked",
-    "fine", "penalty", "tax", "taxes", "regulation", "regulate",
-    "seizure", "confiscate", "probe", "subpoena",
+    # 규제/제재
+    "tariff", "tariffs", "sanction", "sanctions", "ban", "banned",
+    "crackdown", "investigate", "investigation", "restrict", "restriction",
+    "regulate", "regulation", "fine", "penalty", "seizure", "confiscate",
+    "probe", "subpoena", "illegal", "fraud",
+    # 경제 위기
+    "inflation", "deficit", "debt", "recession", "unemployment",
+    "slowdown", "collapse", "crash", "crisis", "default", "bankrupt",
+    # 지정학/갈등
+    "war", "conflict", "block", "blocked", "fake",
+    # 세금
+    "tax", "taxes",
 ]
+
 
 def compute_keyword_score(text: str) -> int:
     """텍스트에서 키워드를 스캔해 0~100 점수를 반환한다. 50이 중립."""

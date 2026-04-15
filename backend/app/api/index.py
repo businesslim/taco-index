@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from app.database import get_db
 from app.redis_client import get_redis
 from app.models.index import TacoIndexHistory, IndexBand
+from app.models.tweet import Tweet
 from app.schemas.index import CurrentIndexResponse, IndexHistoryResponse, IndexHistoryPoint
 from app.analyzer.scorer import get_band_label
 
@@ -18,11 +19,22 @@ BAND_COLORS = {
     "Taco de CHICKEN":  "#008000",
 }
 
+async def _get_last_post_at(db: AsyncSession) -> datetime | None:
+    """가장 최근 Truth Social 포스트 시각을 반환한다."""
+    result = await db.execute(
+        select(Tweet.posted_at).order_by(desc(Tweet.posted_at)).limit(1)
+    )
+    row = result.scalar_one_or_none()
+    return row
+
+
 @router.get("/current", response_model=CurrentIndexResponse)
 async def get_current_index(
     db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
 ):
+    last_post_at = await _get_last_post_at(db)
+
     # Redis 캐시 확인
     cached = await redis.get("taco:current_index")
     if cached and ":" in cached:
@@ -34,6 +46,7 @@ async def get_current_index(
             band_color=BAND_COLORS.get(band_label, "#FFD700"),
             tweet_count=0,
             calculated_at=datetime.now(timezone.utc),
+            last_post_at=last_post_at,
         )
 
     # DB 폴백
@@ -48,6 +61,7 @@ async def get_current_index(
             band_color=BAND_COLORS["Cooking..."],
             tweet_count=0,
             calculated_at=None,
+            last_post_at=last_post_at,
         )
     return CurrentIndexResponse(
         index_value=latest.index_value,
@@ -55,6 +69,7 @@ async def get_current_index(
         band_color=BAND_COLORS.get(latest.band_label, "#FFD700"),
         tweet_count=latest.tweet_count,
         calculated_at=latest.calculated_at,
+        last_post_at=last_post_at,
     )
 
 

@@ -19,6 +19,7 @@ export default async function HomePage() {
       band_color: "#FFD700",
       tweet_count: 0,
       calculated_at: null,
+      last_post_at: null,
     })),
     fetchRecentTweets(10).catch(() => []),
     fetchIndexHistory("7d").catch(() => []),
@@ -46,6 +47,16 @@ export default async function HomePage() {
         ) : (
           <p className="text-gray-600 text-sm">No data yet</p>
         )}
+        {(() => {
+          if (!currentIndex.last_post_at) return null;
+          const hoursAgo = (Date.now() - new Date(currentIndex.last_post_at).getTime()) / 36e5;
+          if (hoursAgo < 48) return null;
+          return (
+            <p className="text-yellow-600 text-xs text-center max-w-sm mt-1">
+              ⚠️ No Truth Social activity detected in the past 48 hours. The index may not reflect current market conditions.
+            </p>
+          );
+        })()}
       </section>
 
       {/* 시장 데이터 */}
