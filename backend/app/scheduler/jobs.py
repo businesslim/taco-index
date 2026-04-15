@@ -144,22 +144,27 @@ async def save_asset_prices() -> None:
                     "https://api.coingecko.com/api/v3/simple/price",
                     params={"ids": "bitcoin", "vs_currencies": "usd"},
                 )
-                btc_price = resp.json()["bitcoin"]["usd"]
-                prices.append(AssetPriceHistory(symbol="BTC", price=btc_price, recorded_at=now))
+                data = resp.json()
+                if "bitcoin" in data and "usd" in data["bitcoin"]:
+                    btc_price = data["bitcoin"]["usd"]
+                    prices.append(AssetPriceHistory(symbol="BTC", price=btc_price, recorded_at=now))
+                else:
+                    logger.warning(f"BTC price fetch unexpected response: {data}")
             except Exception as e:
                 logger.warning(f"BTC price fetch failed: {e}")
 
-            # SPX (Stooq)
+            # SPX (Yahoo Finance)
             try:
-                import csv, io
                 resp = await client.get(
-                    "https://stooq.com/q/l/",
-                    params={"s": "^spx", "f": "sd2t2ohlcv", "h": "", "e": "csv"},
+                    "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC",
+                    params={"interval": "1d", "range": "1d"},
+                    headers={"User-Agent": "Mozilla/5.0"},
                 )
-                reader = csv.DictReader(io.StringIO(resp.text))
-                row = next(reader, None)
-                if row and row.get("Close") not in (None, "N/D", ""):
-                    prices.append(AssetPriceHistory(symbol="SPX", price=float(row["Close"]), recorded_at=now))
+                data = resp.json()
+                closes = data["chart"]["result"][0]["indicators"]["quote"][0]["close"]
+                spx_price = next((p for p in reversed(closes) if p is not None), None)
+                if spx_price is not None:
+                    prices.append(AssetPriceHistory(symbol="SPX", price=spx_price, recorded_at=now))
             except Exception as e:
                 logger.warning(f"SPX price fetch failed: {e}")
 
