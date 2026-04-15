@@ -1,4 +1,5 @@
 import { fetchMarketPrices, MarketAsset } from "@/lib/api";
+import { Card, CardContent } from "@/components/ui/card";
 
 async function fetchCrypto(): Promise<MarketAsset[]> {
   try {
@@ -41,29 +42,31 @@ function CategoryBox({
   formatPrice: (p: number) => string;
 }) {
   return (
-    <div className="bg-gray-900 rounded-2xl p-5 flex flex-col gap-4">
-      <h3 className="text-xs text-gray-500 uppercase tracking-wide font-medium">{title}</h3>
-      {assets.length === 0 ? (
-        <p className="text-gray-600 text-sm">Data unavailable</p>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {assets.map((asset) => {
-            const isUp = asset.change_percent >= 0;
-            return (
-              <div key={asset.symbol} className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-300">{asset.label}</span>
-                <div className="flex flex-col items-end gap-0.5">
-                  <span className="text-sm font-bold">{formatPrice(asset.price)}</span>
-                  <span className={`text-xs font-medium ${isUp ? "text-green-400" : "text-red-400"}`}>
-                    {isUp ? "▲" : "▼"} {Math.abs(asset.change_percent).toFixed(2)}%
-                  </span>
+    <Card>
+      <CardContent className="pt-4 flex flex-col gap-4">
+        <h3 className="text-xs text-muted-foreground uppercase tracking-wide font-medium">{title}</h3>
+        {assets.length === 0 ? (
+          <p className="text-muted-foreground/50 text-sm">Data unavailable</p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {assets.map((asset) => {
+              const isUp = asset.change_percent >= 0;
+              return (
+                <div key={asset.symbol} className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-foreground/80">{asset.label}</span>
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className="text-sm font-bold">{formatPrice(asset.price)}</span>
+                    <span className={`text-xs font-medium ${isUp ? "text-green-400" : "text-red-400"}`}>
+                      {isUp ? "▲" : "▼"} {Math.abs(asset.change_percent).toFixed(2)}%
+                    </span>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -92,7 +95,7 @@ export default async function MarketTicker() {
         <CategoryBox title="US Equities" assets={market.equities} formatPrice={formatIndex} />
         <CategoryBox title="Commodities" assets={market.commodities} formatPrice={formatGold} />
       </div>
-      <p className="text-xs text-gray-600 text-right">Last updated: {updatedAt}</p>
+      <p className="text-xs text-muted-foreground/50 text-right">Last updated: {updatedAt}</p>
     </div>
   );
 }

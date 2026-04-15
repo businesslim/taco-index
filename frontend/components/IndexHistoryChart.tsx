@@ -18,6 +18,7 @@ import {
   fetchIndexHistory,
   fetchAssetHistory,
 } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 
 type Range = "1d" | "7d" | "30d";
 type Granularity = "hour" | "day";
@@ -168,7 +169,7 @@ export default function IndexHistoryChart() {
 
   if (!loading && indexData.length === 0) {
     return (
-      <p className="text-gray-500 text-sm">
+      <p className="text-muted-foreground text-sm">
         No history data yet. Check back after the first few pipeline runs.
       </p>
     );
@@ -179,19 +180,17 @@ export default function IndexHistoryChart() {
       {/* Controls */}
       <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
         {/* Period tabs */}
-        <div className="flex gap-1 bg-gray-800 rounded-lg p-1">
+        <div className="flex gap-1 bg-muted rounded-lg p-1">
           {RANGE_OPTIONS.map((opt) => (
-            <button
+            <Button
               key={opt.value}
+              size="sm"
+              variant={range === opt.value ? "secondary" : "ghost"}
               onClick={() => setRange(opt.value)}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                range === opt.value
-                  ? "bg-gray-600 text-white"
-                  : "text-gray-400 hover:text-gray-200"
-              }`}
+              className="rounded-md"
             >
               {opt.label}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -201,11 +200,13 @@ export default function IndexHistoryChart() {
             <button
               key={key}
               onClick={() => toggleAsset(key)}
-              className="px-3 py-1 rounded-full text-xs font-medium border transition-all"
+              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                assets[key] ? "" : "text-muted-foreground border-border bg-transparent"
+              }`}
               style={
                 assets[key]
                   ? { backgroundColor: color + "22", color, borderColor: color + "66" }
-                  : { color: "#6B7280", borderColor: "#374151", backgroundColor: "transparent" }
+                  : undefined
               }
             >
               {label}
@@ -216,7 +217,7 @@ export default function IndexHistoryChart() {
 
       {/* Chart */}
       {loading ? (
-        <div className="h-72 flex items-center justify-center text-gray-500 text-sm">
+        <div className="h-72 flex items-center justify-center text-muted-foreground text-sm">
           Loading...
         </div>
       ) : (
@@ -359,7 +360,7 @@ export default function IndexHistoryChart() {
               background: "linear-gradient(to right, #FF4444, #FF8C00, #FFD700, #32CD32, #008000)",
             }}
           />
-          <span className="text-xs text-gray-500">TACO Index (0–100)</span>
+          <span className="text-xs text-muted-foreground">TACO Index (0–100)</span>
         </div>
         {ASSET_CONFIG.filter((a) => assets[a.key]).map(({ key, label, color }) => (
           <div key={key} className="flex items-center gap-1.5">
@@ -369,7 +370,7 @@ export default function IndexHistoryChart() {
                 backgroundImage: `repeating-linear-gradient(to right, ${color} 0, ${color} 5px, transparent 5px, transparent 8px)`,
               }}
             />
-            <span className="text-xs text-gray-500">{label} (% change)</span>
+            <span className="text-xs text-muted-foreground">{label} (% change)</span>
           </div>
         ))}
       </div>

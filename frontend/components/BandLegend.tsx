@@ -1,4 +1,5 @@
 import TacoIcon from "@/components/TacoIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const BANDS = [
   {
@@ -40,25 +41,29 @@ const BANDS = [
 
 export default function BandLegend() {
   return (
-    <section className="bg-gray-900 rounded-2xl p-6">
-      <h2 className="text-lg font-semibold mb-4">Index Guide</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
-        {BANDS.map((band) => (
-          <div
-            key={band.label}
-            className="flex flex-col items-center text-center gap-2 rounded-xl p-4"
-            style={{ backgroundColor: band.color + "11", border: `1px solid ${band.color}33` }}
-          >
-            <TacoIcon bandLabel={band.label} size={48} />
-            <p className="text-xs font-bold" style={{ color: band.color }}>
-              {band.sentiment}
-            </p>
-            <p className="text-sm font-semibold text-gray-200">{band.label}</p>
-            <p className="text-xs text-gray-500 font-mono">{band.range}</p>
-            <p className="text-xs text-gray-400 leading-relaxed">{band.description}</p>
-          </div>
-        ))}
-      </div>
-    </section>
+    <Card>
+      <CardHeader>
+        <CardTitle>Index Guide</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+          {BANDS.map((band) => (
+            <div
+              key={band.label}
+              className="flex flex-col items-center text-center gap-2 rounded-xl p-4"
+              style={{ backgroundColor: band.color + "11", border: `1px solid ${band.color}33` }}
+            >
+              <TacoIcon bandLabel={band.label} size={48} />
+              <p className="text-xs font-bold" style={{ color: band.color }}>
+                {band.sentiment}
+              </p>
+              <p className="text-sm font-semibold text-foreground/90">{band.label}</p>
+              <p className="text-xs text-muted-foreground font-mono">{band.range}</p>
+              <p className="text-xs text-muted-foreground/80 leading-relaxed">{band.description}</p>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

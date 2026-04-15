@@ -25,15 +25,15 @@ export default function TweetItem({ tweet, timeAgo }: Props) {
       href={`https://truthsocial.com/@realDonaldTrump/posts/${tweet.tweet_id}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="block border border-gray-800 rounded-xl p-4 hover:border-gray-600 transition-colors cursor-pointer"
+      className="block border border-border rounded-xl p-4 hover:border-foreground/20 bg-card transition-colors cursor-pointer"
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">
+        <span className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
           {tweet.source === "truth_social" ? "Truth Social" : "X (Twitter)"}
         </span>
-        <span className="text-xs text-gray-500">{timeAgo}</span>
+        <span className="text-xs text-muted-foreground/60">{timeAgo}</span>
       </div>
-      <p className="text-sm text-gray-200 mb-2 leading-relaxed break-words">
+      <p className="text-sm text-foreground/90 mb-2 leading-relaxed break-words">
         {displayContent}
       </p>
       {isLong && (
@@ -42,7 +42,7 @@ export default function TweetItem({ tweet, timeAgo }: Props) {
             e.preventDefault();
             setExpanded((prev) => !prev);
           }}
-          className="text-xs text-gray-400 hover:text-gray-200 mb-3 transition-colors"
+          className="text-xs text-muted-foreground hover:text-foreground mb-3 transition-colors"
         >
           {expanded ? "Show less ▲" : "Show more ▼"}
         </button>
@@ -61,12 +61,12 @@ export default function TweetItem({ tweet, timeAgo }: Props) {
             {tweet.final_score} · {tweet.band_label}
           </span>
         ) : (
-          <span className="text-sm px-3 py-1 rounded-full bg-gray-800 text-gray-500 border border-gray-700">
+          <span className="text-sm px-3 py-1 rounded-full bg-muted text-muted-foreground border border-border">
             Off-topic
           </span>
         )}
         {tweet.llm_reasoning && (
-          <span className="text-xs text-gray-500 italic">
+          <span className="text-xs text-muted-foreground/70 italic">
             &ldquo;{tweet.llm_reasoning}&rdquo;
           </span>
         )}
