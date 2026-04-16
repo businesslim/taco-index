@@ -28,6 +28,11 @@ export default function RootLayout({
         <main className="max-w-5xl mx-auto px-6 py-8">{children}</main>
       </body>
       <GoogleAnalytics gaId="G-F5LSGKHT55" />
+      <script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5422727782996636"
+        crossOrigin="anonymous"
+      />
     </html>
   );
 }
