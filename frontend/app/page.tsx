@@ -28,10 +28,13 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* 설명 문구 */}
-      <p className="text-muted-foreground text-sm leading-relaxed">
-        The TACO Index analyzes Donald Trump&apos;s Truth Social activity to gauge financial market sentiment. Each post is scored for market relevance and direction, giving you a real-time pulse on how Trump&apos;s words move crypto, equities, and commodities.
-      </p>
+      {/* Hero 설명 */}
+      <div className="flex flex-col gap-1.5">
+        <h2 className="text-lg font-semibold text-foreground">What is TACO Index?</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed max-w-2xl">
+          The TACO Index analyzes Donald Trump&apos;s Truth Social activity to gauge financial market sentiment. Each post is scored for market relevance and direction, giving you a real-time pulse on how Trump&apos;s words move crypto, equities, and commodities.
+        </p>
+      </div>
 
       {/* 상단 2컬럼: 게이지(좌) + 최근 포스트(우) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
