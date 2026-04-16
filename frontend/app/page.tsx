@@ -5,7 +5,8 @@ import {
 import GaugeMeter from "@/components/GaugeMeter";
 import TweetFeed from "@/components/TweetFeed";
 import MarketTicker from "@/components/MarketTicker";
-import IndexHistoryChart from "@/components/IndexHistoryChart";
+import dynamic from "next/dynamic";
+const IndexHistoryChart = dynamic(() => import("@/components/IndexHistoryChart"), { ssr: false });
 import BandLegend from "@/components/BandLegend";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
