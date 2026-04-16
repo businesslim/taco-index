@@ -177,10 +177,13 @@ export default function IndexHistoryChart() {
       .filter((v): v is number => v !== undefined)
   );
   const pctPad = 3;
-  const pctMin =
-    allPcts.length > 0 ? Math.floor(Math.min(...allPcts) - pctPad) : -10;
-  const pctMax =
-    allPcts.length > 0 ? Math.ceil(Math.max(...allPcts) + pctPad) : 10;
+  // 0% 기준선이 TACO Index 50선과 같은 높이에 오도록 도메인을 대칭으로 설정
+  const rawAbsMax = allPcts.length > 0
+    ? Math.max(Math.abs(Math.min(...allPcts)), Math.abs(Math.max(...allPcts)))
+    : 10;
+  const pctAbsMax = Math.ceil(rawAbsMax + pctPad);
+  const pctMin = -pctAbsMax;
+  const pctMax = pctAbsMax;
 
   if (!loading && indexData.length === 0) {
     return (
@@ -241,16 +244,16 @@ export default function IndexHistoryChart() {
         <ResponsiveContainer width="100%" height={288}>
           <ComposedChart
             data={chartData}
-            margin={{ top: 5, right: 55, left: -10, bottom: 5 }}
+            margin={{ top: 8, right: 0, left: 0, bottom: 5 }}
           >
             <defs>
               {/*
-                gradientUnits="userSpaceOnUse" + y1=5, y2=283:
-                chart height=288, top/bottom margin=5 → drawing area y: 5~283
-                value=100→y=5, 80→y=61, 60→y=116, 40→y=172, 20→y=227, 0→y=283
+                gradientUnits="userSpaceOnUse" + y1=8, y2=283:
+                chart height=288, top=8, bottom=5 → drawing area y: 8~283
+                value=100→y=8, 80→y=63, 60→y=118, 40→y=173, 20→y=228, 0→y=283
                 → offset 20%=value80, 40%=value60, 60%=value40, 80%=value20
               */}
-              <linearGradient id="tacoStrokeGradient" gradientUnits="userSpaceOnUse" x1="0" y1="5" x2="0" y2="283">
+              <linearGradient id="tacoStrokeGradient" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="283">
                 <stop offset="0%"   stopColor="#008000" />
                 <stop offset="20%"  stopColor="#008000" />
                 <stop offset="20%"  stopColor="#32CD32" />
@@ -262,7 +265,7 @@ export default function IndexHistoryChart() {
                 <stop offset="80%"  stopColor="#FF4444" />
                 <stop offset="100%" stopColor="#FF4444" />
               </linearGradient>
-              <linearGradient id="tacoFillGradient" gradientUnits="userSpaceOnUse" x1="0" y1="5" x2="0" y2="283">
+              <linearGradient id="tacoFillGradient" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="283">
                 <stop offset="0%"   stopColor="#008000" stopOpacity={0.15} />
                 <stop offset="20%"  stopColor="#32CD32" stopOpacity={0.12} />
                 <stop offset="40%"  stopColor="#FFD700" stopOpacity={0.08} />
@@ -287,17 +290,17 @@ export default function IndexHistoryChart() {
               tick={{ fill: "#6b7fa3", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
-              width={35}
+              width={36}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
               domain={showRightAxis ? [pctMin, pctMax] : [0, 100]}
-              tick={showRightAxis ? { fill: "#6B7280", fontSize: 11 } : false}
+              tick={showRightAxis ? { fill: "#6b7fa3", fontSize: 11 } : false}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v) => `${v > 0 ? "+" : ""}${v}%`}
-              width={50}
+              width={52}
             />
 
             <Tooltip
@@ -319,15 +322,13 @@ export default function IndexHistoryChart() {
               }}
             />
 
+            {/* 기준선 통합: TACO=50 이자 자산 0% 기준선 (대칭 도메인으로 동일 높이) */}
             <ReferenceLine
               yAxisId="left"
               y={50}
-              stroke="#1a2436"
+              stroke="#2a3a52"
               strokeDasharray="4 4"
             />
-            {showRightAxis && (
-              <ReferenceLine yAxisId="right" y={0} stroke="#374151" strokeDasharray="4 4" />
-            )}
 
             <Area
               yAxisId="left"
