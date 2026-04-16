@@ -241,7 +241,7 @@ export default function IndexHistoryChart() {
         <ResponsiveContainer width="100%" height={288}>
           <ComposedChart
             data={chartData}
-            margin={{ top: 5, right: showRightAxis ? 55 : 10, left: -20, bottom: 5 }}
+            margin={{ top: 5, right: 55, left: -20, bottom: 5 }}
           >
             <defs>
               {/*
@@ -289,18 +289,16 @@ export default function IndexHistoryChart() {
               tickLine={false}
               width={35}
             />
-            {showRightAxis && (
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                domain={[pctMin, pctMax]}
-                tick={{ fill: "#6B7280", fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v) => `${v > 0 ? "+" : ""}${v}%`}
-                width={50}
-              />
-            )}
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              domain={showRightAxis ? [pctMin, pctMax] : [0, 100]}
+              tick={showRightAxis ? { fill: "#6B7280", fontSize: 11 } : false}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => `${v > 0 ? "+" : ""}${v}%`}
+              width={50}
+            />
 
             <Tooltip
               contentStyle={{
@@ -328,12 +326,7 @@ export default function IndexHistoryChart() {
               strokeDasharray="4 4"
             />
             {showRightAxis && (
-              <ReferenceLine
-                yAxisId="right"
-                y={0}
-                stroke="#374151"
-                strokeDasharray="4 4"
-              />
+              <ReferenceLine yAxisId="right" y={0} stroke="#374151" strokeDasharray="4 4" />
             )}
 
             <Area
