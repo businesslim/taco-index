@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
+import { DM_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { GoogleAnalytics } from "@next/third-parties/google";
+
+const dmMono = DM_Mono({
+  weight: ["400", "500"],
+  subsets: ["latin"],
+  variable: "--font-mono",
+});
 
 
 export const metadata: Metadata = {
@@ -17,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn("dark font-sans", GeistSans.variable)}>
+    <html lang="en" className={cn("dark font-sans", GeistSans.variable, dmMono.variable)}>
       <body className="bg-background text-foreground min-h-screen">
         <header className="border-b border-border px-6 py-4">
           <div className="max-w-5xl mx-auto flex items-center gap-2">

@@ -272,11 +272,11 @@ export default function IndexHistoryChart() {
               </linearGradient>
             </defs>
 
-            <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#1a2436" />
 
             <XAxis
               dataKey="label"
-              tick={{ fill: "#6B7280", fontSize: 11 }}
+              tick={{ fill: "#6b7fa3", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               interval="preserveStartEnd"
@@ -284,7 +284,7 @@ export default function IndexHistoryChart() {
             <YAxis
               yAxisId="left"
               domain={[0, 100]}
-              tick={{ fill: "#6B7280", fontSize: 11 }}
+              tick={{ fill: "#6b7fa3", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               width={35}
@@ -302,13 +302,13 @@ export default function IndexHistoryChart() {
 
             <Tooltip
               contentStyle={{
-                backgroundColor: "#111827",
-                border: "1px solid #1F2937",
-                borderRadius: 10,
+                backgroundColor: "#0d1320",
+                border: "1px solid #1a2436",
+                borderRadius: 6,
                 padding: "8px 12px",
               }}
-              labelStyle={{ color: "#9CA3AF", fontSize: 12, marginBottom: 4 }}
-              itemStyle={{ color: "#F9FAFB", fontSize: 12 }}
+              labelStyle={{ color: "#6b7fa3", fontSize: 12, marginBottom: 4 }}
+              itemStyle={{ color: "#e8edf5", fontSize: 12 }}
               formatter={(value, name) => {
                 const v = Number(value);
                 if (name === "tacoIndex") return [v, "TACO Index"];
@@ -322,7 +322,7 @@ export default function IndexHistoryChart() {
             <ReferenceLine
               yAxisId="left"
               y={50}
-              stroke="#374151"
+              stroke="#1a2436"
               strokeDasharray="4 4"
             />
             {showRightAxis && (

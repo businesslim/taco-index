@@ -25,7 +25,7 @@ export default function TopPostFeed({ tweets }: Props) {
           >
             {/* Badge */}
             <span
-              className="shrink-0 text-xs font-bold px-2 py-0.5 rounded-full"
+              className="shrink-0 text-xs font-bold font-mono px-2 py-0.5 rounded"
               style={{
                 backgroundColor: tweet.band_color + "22",
                 color: tweet.band_color,

@@ -73,15 +73,15 @@ export default function GaugeMeter({ value, label, color, compact = false }: Gau
           y1={cy}
           x2={needleX.toFixed(2)}
           y2={needleY.toFixed(2)}
-          stroke="white"
+          stroke="#F59E0B"
           strokeWidth="3"
           strokeLinecap="round"
         />
-        <circle cx={cx} cy={cy} r="5" fill="white" />
+        <circle cx={cx} cy={cy} r="5" fill="#F59E0B" />
       </svg>
       <div className="text-center flex flex-col items-center gap-1">
         <TacoIcon bandLabel={label} size={compact ? 48 : 80} />
-        <p className={compact ? "text-4xl font-bold" : "text-6xl font-bold"} style={{ color }}>
+        <p className={compact ? "text-4xl font-bold font-mono" : "text-6xl font-bold font-mono"} style={{ color }}>
           {v}
         </p>
         <p className={compact ? "text-base font-medium" : "text-xl mt-1 font-medium"} style={{ color }}>
