@@ -31,13 +31,24 @@ interface ChartPoint {
   goldPct?: number;
 }
 
+function parseDate(str: string): Date | null {
+  // Normalize Python datetime strings for mobile Safari compatibility:
+  // "2026-04-15T13:30:00.123456+00:00" → "2026-04-15T13:30:00.123Z"
+  const normalized = str
+    .replace(/(\.\d{3})\d+/, "$1")   // truncate microseconds to milliseconds
+    .replace(/\+00:00$/, "Z");        // normalize timezone to Z
+  const dt = new Date(normalized);
+  return isNaN(dt.getTime()) ? null : dt;
+}
+
 function aggregateTaco(
   data: IndexHistoryPoint[],
   by: Granularity
 ): { key: string; value: number }[] {
   const buckets = new Map<string, number[]>();
   for (const d of data) {
-    const dt = new Date(d.calculated_at);
+    const dt = parseDate(d.calculated_at);
+    if (!dt) continue;
     const key =
       by === "hour"
         ? dt.toISOString().slice(0, 13)
@@ -55,7 +66,8 @@ function aggregateTaco(
 function buildPriceMap(data: AssetPoint[], by: Granularity): Map<string, number> {
   const map = new Map<string, number>();
   for (const d of data) {
-    const dt = new Date(d.t);
+    const dt = parseDate(d.t);
+    if (!dt) continue;
     const key =
       by === "hour"
         ? dt.toISOString().slice(0, 13)
