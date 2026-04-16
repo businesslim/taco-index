@@ -31,7 +31,7 @@ export default async function HomePage() {
       {/* Hero 설명 */}
       <div className="flex flex-col gap-1.5">
         <h2 className="text-lg font-semibold text-foreground">What is TACO Index?</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed max-w-2xl">
+        <p className="text-muted-foreground text-sm leading-relaxed">
           The TACO Index analyzes Donald Trump&apos;s Truth Social activity to gauge financial market sentiment. Each post is scored for market relevance and direction, giving you a real-time pulse on how Trump&apos;s words move crypto, equities, and commodities.
         </p>
       </div>
