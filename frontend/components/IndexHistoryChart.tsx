@@ -175,6 +175,7 @@ export default function IndexHistoryChart() {
   const [loading, setLoading] = useState(true);
   const [hovered, setHovered] = useState<HoveredBucket | null>(null);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -198,7 +199,11 @@ export default function IndexHistoryChart() {
 
   const showCard = (tweets: TweetWithScore[], cx: number, cy: number) => {
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-    setHovered({ tweets, cx, cy });
+    // fixed 포지셔닝을 위해 viewport 기준 좌표로 변환
+    const rect = chartRef.current?.getBoundingClientRect();
+    const screenX = (rect?.left ?? 0) + cx;
+    const screenY = (rect?.top ?? 0) + cy;
+    setHovered({ tweets, cx: screenX, cy: screenY });
   };
 
   const scheduleHide = () => {
@@ -298,7 +303,7 @@ export default function IndexHistoryChart() {
           Loading...
         </div>
       ) : (
-        <div className="relative">
+        <div ref={chartRef} className="relative" style={{ outline: "none" }}>
           <ResponsiveContainer width="100%" height={288}>
             <ComposedChart
               data={chartData}
@@ -461,16 +466,18 @@ export default function IndexHistoryChart() {
             </ComposedChart>
           </ResponsiveContainer>
 
-          {/* Notable tweet floating card */}
+          {/* Notable tweet floating card — fixed 포지셔닝으로 부모 overflow 영향 없음 */}
           {hovered && (
             <div
-              className="absolute z-50 pointer-events-auto"
+              className="pointer-events-auto"
               style={{
+                position: "fixed",
                 left: hovered.cx,
-                top: hovered.cy < 130 ? hovered.cy + 14 : hovered.cy - 14,
-                transform: hovered.cy < 130
+                top: hovered.cy < 200 ? hovered.cy + 14 : hovered.cy - 14,
+                transform: hovered.cy < 200
                   ? "translateX(-50%)"
                   : "translate(-50%, -100%)",
+                zIndex: 9999,
               }}
               onMouseEnter={() => {
                 if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
@@ -482,17 +489,24 @@ export default function IndexHistoryChart() {
                 style={{
                   backgroundColor: "#0d1320",
                   border: "1px solid #1a2436",
-                  minWidth: "220px",
-                  maxWidth: "300px",
+                  minWidth: "240px",
+                  maxWidth: "320px",
+                  maxHeight: "320px",
+                  overflowY: "auto",
                 }}
               >
-                {hovered.tweets.map((tweet) => (
+                {hovered.tweets.map((tweet, i) => (
                   <a
                     key={tweet.tweet_id}
                     href={`https://truthsocial.com/@realDonaldTrump/posts/${tweet.tweet_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex flex-col gap-1 group"
+                    style={
+                      i < hovered.tweets.length - 1
+                        ? { paddingBottom: "10px", borderBottom: "1px solid #1a2436" }
+                        : undefined
+                    }
                   >
                     <div className="flex items-center gap-2">
                       <span
@@ -511,13 +525,7 @@ export default function IndexHistoryChart() {
                     </div>
                     <p
                       className="text-xs leading-relaxed group-hover:opacity-80 transition-opacity"
-                      style={{
-                        color: "#e8edf5",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}
+                      style={{ color: "#e8edf5" }}
                     >
                       {tweet.content}
                     </p>

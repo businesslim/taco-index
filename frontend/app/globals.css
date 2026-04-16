@@ -79,6 +79,10 @@
     @apply border-border;
     outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
   }
+  .recharts-wrapper,
+  .recharts-wrapper * {
+    outline: none !important;
+  }
   body {
     @apply bg-background text-foreground;
   }
