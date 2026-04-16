@@ -94,6 +94,21 @@ export interface AssetHistory {
   gold: AssetPoint[];
 }
 
+export async function fetchNotableTweets(
+  range: "1d" | "7d" | "30d" = "7d"
+): Promise<TweetWithScore[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/tweets/notable?range=${range}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchAssetHistory(
   range: "1d" | "7d" | "30d" = "7d"
 ): Promise<AssetHistory> {

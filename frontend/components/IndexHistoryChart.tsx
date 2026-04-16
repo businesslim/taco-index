@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ComposedChart,
   Area,
@@ -15,8 +15,10 @@ import {
 import {
   IndexHistoryPoint,
   AssetPoint,
+  TweetWithScore,
   fetchIndexHistory,
   fetchAssetHistory,
+  fetchNotableTweets,
 } from "@/lib/api";
 
 type Range = "1d" | "7d" | "30d";
@@ -29,14 +31,19 @@ interface ChartPoint {
   btcPct?: number;
   spxPct?: number;
   goldPct?: number;
+  notableTweets?: TweetWithScore[];
+}
+
+interface HoveredBucket {
+  tweets: TweetWithScore[];
+  cx: number;
+  cy: number;
 }
 
 function parseDate(str: string): Date | null {
-  // Normalize Python datetime strings for mobile Safari compatibility:
-  // "2026-04-15T13:30:00.123456+00:00" → "2026-04-15T13:30:00.123Z"
   const normalized = str
-    .replace(/(\.\d{3})\d+/, "$1")   // truncate microseconds to milliseconds
-    .replace(/\+00:00$/, "Z");        // normalize timezone to Z
+    .replace(/(\.\d{3})\d+/, "$1")
+    .replace(/\+00:00$/, "Z");
   const dt = new Date(normalized);
   return isNaN(dt.getTime()) ? null : dt;
 }
@@ -77,6 +84,25 @@ function buildPriceMap(data: AssetPoint[], by: Granularity): Map<string, number>
   return map;
 }
 
+function buildTweetBuckets(
+  tweets: TweetWithScore[],
+  by: Granularity
+): Map<string, TweetWithScore[]> {
+  const map = new Map<string, TweetWithScore[]>();
+  for (const t of tweets) {
+    const dt = parseDate(t.posted_at);
+    if (!dt) continue;
+    const key =
+      by === "hour"
+        ? dt.toISOString().slice(0, 13)
+        : dt.toISOString().slice(0, 10);
+    const existing = map.get(key) ?? [];
+    existing.push(t);
+    map.set(key, existing);
+  }
+  return map;
+}
+
 function normalizeToPercent(
   priceMap: Map<string, number>,
   keys: string[]
@@ -103,6 +129,19 @@ function formatLabel(key: string, by: Granularity): string {
   }
   const dt = new Date(key + "T12:00:00Z");
   return dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function formatCardDate(isoStr: string): string {
+  const dt = parseDate(isoStr);
+  if (!dt) return "";
+  return dt.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "UTC",
+  }) + " UTC";
 }
 
 const RANGE_OPTIONS: { label: string; value: Range }[] = [
@@ -132,14 +171,22 @@ export default function IndexHistoryChart() {
     spx: AssetPoint[];
     gold: AssetPoint[];
   }>({ btc: [], spx: [], gold: [] });
+  const [notableTweets, setNotableTweets] = useState<TweetWithScore[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hovered, setHovered] = useState<HoveredBucket | null>(null);
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchIndexHistory(range), fetchAssetHistory(range)])
-      .then(([idx, asset]) => {
+    Promise.all([
+      fetchIndexHistory(range),
+      fetchAssetHistory(range),
+      fetchNotableTweets(range),
+    ])
+      .then(([idx, asset, notable]) => {
         setIndexData(idx);
         setAssetData(asset);
+        setNotableTweets(notable);
       })
       .catch((err) => {
         console.error("IndexHistoryChart fetch failed:", err);
@@ -149,6 +196,15 @@ export default function IndexHistoryChart() {
       });
   }, [range]);
 
+  const showCard = (tweets: TweetWithScore[], cx: number, cy: number) => {
+    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    setHovered({ tweets, cx, cy });
+  };
+
+  const scheduleHide = () => {
+    hideTimeoutRef.current = setTimeout(() => setHovered(null), 150);
+  };
+
   const by: Granularity = range === "1d" ? "hour" : "day";
   const tacoAgg = aggregateTaco(indexData, by);
   const keys = tacoAgg.map((d) => d.key);
@@ -156,6 +212,7 @@ export default function IndexHistoryChart() {
   const btcPct = normalizeToPercent(buildPriceMap(assetData.btc, by), keys);
   const spxPct = normalizeToPercent(buildPriceMap(assetData.spx, by), keys);
   const goldPct = normalizeToPercent(buildPriceMap(assetData.gold, by), keys);
+  const tweetBuckets = buildTweetBuckets(notableTweets, by);
 
   const chartData: ChartPoint[] = tacoAgg.map((d) => ({
     key: d.key,
@@ -164,6 +221,7 @@ export default function IndexHistoryChart() {
     btcPct: btcPct.get(d.key),
     spxPct: spxPct.get(d.key),
     goldPct: goldPct.get(d.key),
+    notableTweets: tweetBuckets.get(d.key),
   }));
 
   const toggleAsset = (key: AssetKey) =>
@@ -177,7 +235,6 @@ export default function IndexHistoryChart() {
       .filter((v): v is number => v !== undefined)
   );
   const pctPad = 3;
-  // 0% 기준선이 TACO Index 50선과 같은 높이에 오도록 도메인을 대칭으로 설정
   const rawAbsMax = allPcts.length > 0
     ? Math.max(Math.abs(Math.min(...allPcts)), Math.abs(Math.max(...allPcts)))
     : 10;
@@ -241,126 +298,235 @@ export default function IndexHistoryChart() {
           Loading...
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={288}>
-          <ComposedChart
-            data={chartData}
-            margin={{ top: 8, right: 0, left: 0, bottom: 5 }}
-          >
-            <defs>
-              {/*
-                gradientUnits="userSpaceOnUse": SVG 좌표로 색 경계 지정
-                chart height=288, margin.top=8, margin.bottom=5, XAxis height=30
-                → 실제 데이터 플로팅 영역: y=8 ~ y=253 (288-5-30)
-                value=100→y=8, 80→y=57, 60→y=106, 40→y=155, 20→y=204, 0→y=253
-                → offset 20%=value80, 40%=value60, 60%=value40, 80%=value20
-              */}
-              <linearGradient id="tacoStrokeGradient" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="253">
-                <stop offset="0%"   stopColor="#008000" />
-                <stop offset="20%"  stopColor="#008000" />
-                <stop offset="20%"  stopColor="#32CD32" />
-                <stop offset="40%"  stopColor="#32CD32" />
-                <stop offset="40%"  stopColor="#FFD700" />
-                <stop offset="60%"  stopColor="#FFD700" />
-                <stop offset="60%"  stopColor="#FF8C00" />
-                <stop offset="80%"  stopColor="#FF8C00" />
-                <stop offset="80%"  stopColor="#FF4444" />
-                <stop offset="100%" stopColor="#FF4444" />
-              </linearGradient>
-              <linearGradient id="tacoFillGradient" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="253">
-                <stop offset="0%"   stopColor="#008000" stopOpacity={0.15} />
-                <stop offset="20%"  stopColor="#32CD32" stopOpacity={0.12} />
-                <stop offset="40%"  stopColor="#FFD700" stopOpacity={0.08} />
-                <stop offset="60%"  stopColor="#FF8C00" stopOpacity={0.06} />
-                <stop offset="80%"  stopColor="#FF4444" stopOpacity={0.04} />
-                <stop offset="100%" stopColor="#FF4444" stopOpacity={0}    />
-              </linearGradient>
-            </defs>
+        <div className="relative">
+          <ResponsiveContainer width="100%" height={288}>
+            <ComposedChart
+              data={chartData}
+              margin={{ top: 8, right: 0, left: 0, bottom: 5 }}
+            >
+              <defs>
+                {/*
+                  gradientUnits="userSpaceOnUse": SVG 좌표로 색 경계 지정
+                  chart height=288, margin.top=8, margin.bottom=5, XAxis height=30
+                  → 실제 데이터 플로팅 영역: y=8 ~ y=253 (288-5-30)
+                  value=100→y=8, 80→y=57, 60→y=106, 40→y=155, 20→y=204, 0→y=253
+                  → offset 20%=value80, 40%=value60, 60%=value40, 80%=value20
+                */}
+                <linearGradient id="tacoStrokeGradient" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="253">
+                  <stop offset="0%"   stopColor="#008000" />
+                  <stop offset="20%"  stopColor="#008000" />
+                  <stop offset="20%"  stopColor="#32CD32" />
+                  <stop offset="40%"  stopColor="#32CD32" />
+                  <stop offset="40%"  stopColor="#FFD700" />
+                  <stop offset="60%"  stopColor="#FFD700" />
+                  <stop offset="60%"  stopColor="#FF8C00" />
+                  <stop offset="80%"  stopColor="#FF8C00" />
+                  <stop offset="80%"  stopColor="#FF4444" />
+                  <stop offset="100%" stopColor="#FF4444" />
+                </linearGradient>
+                <linearGradient id="tacoFillGradient" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="253">
+                  <stop offset="0%"   stopColor="#008000" stopOpacity={0.15} />
+                  <stop offset="20%"  stopColor="#32CD32" stopOpacity={0.12} />
+                  <stop offset="40%"  stopColor="#FFD700" stopOpacity={0.08} />
+                  <stop offset="60%"  stopColor="#FF8C00" stopOpacity={0.06} />
+                  <stop offset="80%"  stopColor="#FF4444" stopOpacity={0.04} />
+                  <stop offset="100%" stopColor="#FF4444" stopOpacity={0}    />
+                </linearGradient>
+              </defs>
 
-            <CartesianGrid strokeDasharray="3 3" stroke="#1a2436" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#1a2436" />
 
-            <XAxis
-              dataKey="label"
-              tick={{ fill: "#6b7fa3", fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-              interval="preserveStartEnd"
-            />
-            <YAxis
-              yAxisId="left"
-              domain={[0, 100]}
-              tick={{ fill: "#6b7fa3", fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-              width={36}
-            />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              domain={showRightAxis ? [pctMin, pctMax] : [0, 100]}
-              tick={showRightAxis ? { fill: "#6b7fa3", fontSize: 11 } : false}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(v) => `${v > 0 ? "+" : ""}${v}%`}
-              width={52}
-            />
+              <XAxis
+                dataKey="label"
+                tick={{ fill: "#6b7fa3", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                interval="preserveStartEnd"
+              />
+              <YAxis
+                yAxisId="left"
+                domain={[0, 100]}
+                tick={{ fill: "#6b7fa3", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                width={36}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                domain={showRightAxis ? [pctMin, pctMax] : [0, 100]}
+                tick={showRightAxis ? { fill: "#6b7fa3", fontSize: 11 } : false}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v) => `${v > 0 ? "+" : ""}${v}%`}
+                width={52}
+              />
 
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#0d1320",
-                border: "1px solid #1a2436",
-                borderRadius: 6,
-                padding: "8px 12px",
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#0d1320",
+                  border: "1px solid #1a2436",
+                  borderRadius: 6,
+                  padding: "8px 12px",
+                }}
+                labelStyle={{ color: "#6b7fa3", fontSize: 12, marginBottom: 4 }}
+                itemStyle={{ color: "#e8edf5", fontSize: 12 }}
+                formatter={(value, name) => {
+                  const v = Number(value);
+                  if (name === "tacoIndex") return [v, "TACO Index"];
+                  if (name === "btcPct") return [`${v > 0 ? "+" : ""}${v}%`, "BTC"];
+                  if (name === "spxPct") return [`${v > 0 ? "+" : ""}${v}%`, "S&P 500"];
+                  if (name === "goldPct") return [`${v > 0 ? "+" : ""}${v}%`, "Gold"];
+                  return [v, String(name)];
+                }}
+              />
+
+              {/* 기준선 통합: TACO=50 이자 자산 0% 기준선 (대칭 도메인으로 동일 높이) */}
+              <ReferenceLine
+                yAxisId="left"
+                y={50}
+                stroke="#2a3a52"
+                strokeDasharray="4 4"
+              />
+
+              <Area
+                yAxisId="left"
+                type="monotone"
+                dataKey="tacoIndex"
+                stroke="url(#tacoStrokeGradient)"
+                fill="url(#tacoFillGradient)"
+                strokeWidth={2}
+                activeDot={{ r: 4, fill: "#FFD700" }}
+                connectNulls
+                dot={(props: {
+                  cx?: number;
+                  cy?: number;
+                  index?: number;
+                }) => {
+                  const { cx, cy, index } = props;
+                  if (cx === undefined || cy === undefined || index === undefined) {
+                    return <g key="dot-empty" />;
+                  }
+                  const point = chartData[index];
+                  if (!point?.notableTweets?.length) {
+                    return <g key={`dot-${index}`} />;
+                  }
+                  const tweets = point.notableTweets;
+                  const extreme = tweets.reduce((a, b) =>
+                    Math.abs(a.final_score - 50) > Math.abs(b.final_score - 50) ? a : b
+                  );
+                  const color = extreme.band_color;
+                  return (
+                    <g
+                      key={`dot-notable-${index}`}
+                      style={{ cursor: "pointer" }}
+                      onMouseEnter={() => showCard(tweets, cx, cy)}
+                      onMouseLeave={scheduleHide}
+                    >
+                      <circle cx={cx} cy={cy} r={10} fill={color} fillOpacity={0.15} />
+                      <circle cx={cx} cy={cy} r={5} fill={color} stroke="#0d1320" strokeWidth={1.5} />
+                      {tweets.length > 1 && (
+                        <text
+                          x={cx + 8}
+                          y={cy - 8}
+                          fontSize={9}
+                          fill={color}
+                          fontWeight="bold"
+                          style={{ pointerEvents: "none" }}
+                        >
+                          {tweets.length}
+                        </text>
+                      )}
+                    </g>
+                  );
+                }}
+              />
+
+              {ASSET_CONFIG.map(({ key, color }) =>
+                assets[key] ? (
+                  <Line
+                    key={key}
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey={`${key}Pct`}
+                    stroke={color}
+                    strokeWidth={1.5}
+                    strokeDasharray="5 3"
+                    dot={false}
+                    activeDot={{ r: 3, fill: color }}
+                    connectNulls
+                  />
+                ) : null
+              )}
+            </ComposedChart>
+          </ResponsiveContainer>
+
+          {/* Notable tweet floating card */}
+          {hovered && (
+            <div
+              className="absolute z-50 pointer-events-auto"
+              style={{
+                left: hovered.cx,
+                top: hovered.cy < 130 ? hovered.cy + 14 : hovered.cy - 14,
+                transform: hovered.cy < 130
+                  ? "translateX(-50%)"
+                  : "translate(-50%, -100%)",
               }}
-              labelStyle={{ color: "#6b7fa3", fontSize: 12, marginBottom: 4 }}
-              itemStyle={{ color: "#e8edf5", fontSize: 12 }}
-              formatter={(value, name) => {
-                const v = Number(value);
-                if (name === "tacoIndex") return [v, "TACO Index"];
-                if (name === "btcPct") return [`${v > 0 ? "+" : ""}${v}%`, "BTC"];
-                if (name === "spxPct") return [`${v > 0 ? "+" : ""}${v}%`, "S&P 500"];
-                if (name === "goldPct") return [`${v > 0 ? "+" : ""}${v}%`, "Gold"];
-                return [v, String(name)];
+              onMouseEnter={() => {
+                if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
               }}
-            />
-
-            {/* 기준선 통합: TACO=50 이자 자산 0% 기준선 (대칭 도메인으로 동일 높이) */}
-            <ReferenceLine
-              yAxisId="left"
-              y={50}
-              stroke="#2a3a52"
-              strokeDasharray="4 4"
-            />
-
-            <Area
-              yAxisId="left"
-              type="monotone"
-              dataKey="tacoIndex"
-              stroke="url(#tacoStrokeGradient)"
-              fill="url(#tacoFillGradient)"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, fill: "#FFD700" }}
-              connectNulls
-            />
-
-            {ASSET_CONFIG.map(({ key, color }) =>
-              assets[key] ? (
-                <Line
-                  key={key}
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey={`${key}Pct`}
-                  stroke={color}
-                  strokeWidth={1.5}
-                  strokeDasharray="5 3"
-                  dot={false}
-                  activeDot={{ r: 3, fill: color }}
-                  connectNulls
-                />
-              ) : null
-            )}
-          </ComposedChart>
-        </ResponsiveContainer>
+              onMouseLeave={scheduleHide}
+            >
+              <div
+                className="rounded-lg shadow-xl p-3 flex flex-col gap-2"
+                style={{
+                  backgroundColor: "#0d1320",
+                  border: "1px solid #1a2436",
+                  minWidth: "220px",
+                  maxWidth: "300px",
+                }}
+              >
+                {hovered.tweets.map((tweet) => (
+                  <a
+                    key={tweet.tweet_id}
+                    href={`https://truthsocial.com/@realDonaldTrump/posts/${tweet.tweet_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col gap-1 group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="shrink-0 text-xs font-bold font-mono px-1.5 py-0.5 rounded"
+                        style={{
+                          color: tweet.band_color,
+                          backgroundColor: tweet.band_color + "22",
+                          border: `1px solid ${tweet.band_color}44`,
+                        }}
+                      >
+                        {tweet.final_score}
+                      </span>
+                      <span className="text-xs" style={{ color: "#6b7fa3" }}>
+                        {formatCardDate(tweet.posted_at)}
+                      </span>
+                    </div>
+                    <p
+                      className="text-xs leading-relaxed group-hover:opacity-80 transition-opacity"
+                      style={{
+                        color: "#e8edf5",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {tweet.content}
+                    </p>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Legend */}
@@ -373,6 +539,10 @@ export default function IndexHistoryChart() {
             }}
           />
           <span className="text-xs text-muted-foreground">TACO Index (0–100)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-current" style={{ color: "#FFD700" }} />
+          <span className="text-xs text-muted-foreground">Notable post (score ≤40 or ≥60)</span>
         </div>
         {ASSET_CONFIG.filter((a) => assets[a.key]).map(({ key, label, color }) => (
           <div key={key} className="flex items-center gap-1.5">
