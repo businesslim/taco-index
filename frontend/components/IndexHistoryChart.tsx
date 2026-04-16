@@ -248,12 +248,13 @@ export default function IndexHistoryChart() {
           >
             <defs>
               {/*
-                gradientUnits="userSpaceOnUse" + y1=8, y2=283:
-                chart height=288, top=8, bottom=5 → drawing area y: 8~283
-                value=100→y=8, 80→y=63, 60→y=118, 40→y=173, 20→y=228, 0→y=283
+                gradientUnits="userSpaceOnUse": SVG 좌표로 색 경계 지정
+                chart height=288, margin.top=8, margin.bottom=5, XAxis height=30
+                → 실제 데이터 플로팅 영역: y=8 ~ y=253 (288-5-30)
+                value=100→y=8, 80→y=57, 60→y=106, 40→y=155, 20→y=204, 0→y=253
                 → offset 20%=value80, 40%=value60, 60%=value40, 80%=value20
               */}
-              <linearGradient id="tacoStrokeGradient" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="283">
+              <linearGradient id="tacoStrokeGradient" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="253">
                 <stop offset="0%"   stopColor="#008000" />
                 <stop offset="20%"  stopColor="#008000" />
                 <stop offset="20%"  stopColor="#32CD32" />
@@ -265,7 +266,7 @@ export default function IndexHistoryChart() {
                 <stop offset="80%"  stopColor="#FF4444" />
                 <stop offset="100%" stopColor="#FF4444" />
               </linearGradient>
-              <linearGradient id="tacoFillGradient" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="283">
+              <linearGradient id="tacoFillGradient" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="253">
                 <stop offset="0%"   stopColor="#008000" stopOpacity={0.15} />
                 <stop offset="20%"  stopColor="#32CD32" stopOpacity={0.12} />
                 <stop offset="40%"  stopColor="#FFD700" stopOpacity={0.08} />
