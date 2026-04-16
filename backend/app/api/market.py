@@ -1,5 +1,3 @@
-import csv
-import io
 import json
 import asyncio
 import httpx
@@ -13,10 +11,16 @@ router = APIRouter(prefix="/api/market", tags=["market"])
 CACHE_KEY = "market:prices"
 CACHE_TTL = 300  # 5 minutes
 
-STOOQ_INDICES = [
-    {"symbol": "^SPX", "label": "S&P 500"},
+EQUITY_SYMBOLS = [
+    {"symbol": "^GSPC", "label": "S&P 500"},
     {"symbol": "^NDX", "label": "NASDAQ 100"},
 ]
+
+YF_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "application/json",
+    "Accept-Language": "en-US,en;q=0.9",
+}
 
 
 @router.get("/prices")
@@ -28,7 +32,7 @@ async def get_market_prices():
         return json.loads(cached)
 
     equities, commodities = await asyncio.gather(
-        _fetch_equities_stooq(),
+        _fetch_equities_yahoo(),
         _fetch_gold_twelve_data(),
     )
 
@@ -37,31 +41,40 @@ async def get_market_prices():
     return result
 
 
-async def _fetch_equities_stooq() -> list:
+async def _fetch_equities_yahoo() -> list:
+    import logging
+    logger = logging.getLogger(__name__)
     results = []
-    async with httpx.AsyncClient(timeout=10) as client:
-        for idx in STOOQ_INDICES:
+    for idx in EQUITY_SYMBOLS:
+        encoded = idx["symbol"].replace("^", "%5E")
+        fetched = False
+        for base in ["https://query1.finance.yahoo.com", "https://query2.finance.yahoo.com"]:
             try:
-                resp = await client.get(
-                    "https://stooq.com/q/l/",
-                    params={"s": idx["symbol"], "f": "sd2t2ohlcv", "h": "", "e": "csv"},
-                )
-                resp.raise_for_status()
-                reader = csv.DictReader(io.StringIO(resp.text))
-                row = next(reader, None)
-                if not row or row.get("Close") in (None, "N/D", ""):
-                    continue
-                close = float(row["Close"])
-                open_ = float(row["Open"])
-                change_percent = ((close - open_) / open_ * 100) if open_ else 0.0
+                async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
+                    resp = await client.get(
+                        f"{base}/v8/finance/chart/{encoded}",
+                        params={"interval": "1d", "range": "1d"},
+                        headers=YF_HEADERS,
+                    )
+                    resp.raise_for_status()
+                    data = resp.json()
+                meta = data["chart"]["result"][0]["meta"]
+                price = meta["regularMarketPrice"]
+                prev_close = meta.get("chartPreviousClose") or meta.get("previousClose")
+                change_pct = ((price - prev_close) / prev_close * 100) if prev_close else 0.0
                 results.append({
                     "symbol": idx["symbol"],
                     "label": idx["label"],
-                    "price": close,
-                    "change_percent": round(change_percent, 2),
+                    "price": round(price, 2),
+                    "change_percent": round(change_pct, 2),
                 })
-            except Exception:
+                fetched = True
+                break
+            except Exception as e:
+                logger.error(f"Equity fetch failed ({idx['symbol']} via {base}): {e}")
                 continue
+        if not fetched:
+            logger.error(f"Equity fetch failed for {idx['symbol']} on all endpoints")
     return results
 
 
