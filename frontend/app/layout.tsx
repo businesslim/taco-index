@@ -13,9 +13,9 @@ const dmMono = DM_Mono({
 
 
 export const metadata: Metadata = {
-  title: "TACO Index — Trump Asset Crypto Oracle",
+  title: "TACO Index — Real-Time Market Sentiment from Trump's Truth Social",
   description:
-    "Real-time crypto sentiment index based on Trump's social media posts",
+    "Track how Donald Trump's Truth Social posts move financial markets. TACO Index scores each post for market relevance, giving real-time sentiment signals for crypto, equities, and commodities.",
 };
 
 export default function RootLayout({
