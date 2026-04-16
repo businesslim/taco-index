@@ -6,9 +6,10 @@ interface GaugeMeterProps {
   value: number; // 0~100
   label: string;
   color: string;
+  compact?: boolean;
 }
 
-export default function GaugeMeter({ value, label, color }: GaugeMeterProps) {
+export default function GaugeMeter({ value, label, color, compact = false }: GaugeMeterProps) {
   const v = Math.max(0, Math.min(100, value));
   const cx = 100;
   const cy = 100;
@@ -52,8 +53,11 @@ export default function GaugeMeter({ value, label, color }: GaugeMeterProps) {
   const needleY = cy - needleLen * Math.sin(needleAngle);
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <svg viewBox="0 0 200 115" className="w-72 h-44">
+    <div className="flex flex-col items-center gap-2">
+      <svg
+        viewBox="0 0 200 115"
+        className={compact ? "w-48 h-28" : "w-72 h-44"}
+      >
         {paths.map((seg, i) => (
           <path
             key={i}
@@ -75,12 +79,12 @@ export default function GaugeMeter({ value, label, color }: GaugeMeterProps) {
         />
         <circle cx={cx} cy={cy} r="5" fill="white" />
       </svg>
-      <div className="text-center flex flex-col items-center gap-2">
-        <TacoIcon bandLabel={label} />
-        <p className="text-6xl font-bold" style={{ color }}>
+      <div className="text-center flex flex-col items-center gap-1">
+        <TacoIcon bandLabel={label} size={compact ? 48 : 80} />
+        <p className={compact ? "text-4xl font-bold" : "text-6xl font-bold"} style={{ color }}>
           {v}
         </p>
-        <p className="text-xl mt-1 font-medium" style={{ color }}>
+        <p className={compact ? "text-base font-medium" : "text-xl mt-1 font-medium"} style={{ color }}>
           {label}
         </p>
       </div>
