@@ -241,7 +241,7 @@ export default function IndexHistoryChart() {
         <ResponsiveContainer width="100%" height={288}>
           <ComposedChart
             data={chartData}
-            margin={{ top: 5, right: 55, left: -20, bottom: 5 }}
+            margin={{ top: 5, right: 55, left: -10, bottom: 5 }}
           >
             <defs>
               {/*
