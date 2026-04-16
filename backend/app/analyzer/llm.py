@@ -16,15 +16,23 @@ Analyze Trump's social media post and score its potential impact on investment a
 First, determine if the post is market-relevant. Set market_relevant to false if the post is purely personal (e.g., congratulating someone, sports comments, birthday wishes, entertainment) with no policy, economic, or regulatory implications. Set market_relevant to true if the post touches on trade, policy, regulation, economy, geopolitics, or any factor that could influence investor sentiment.
 
 Score from 0 to 100 (even for non-market-relevant posts, give your best estimate):
-- 0-20: Extremely bearish (bans, sanctions, heavy regulation that would harm asset markets)
-- 21-40: Bearish (negative regulatory signals, policy uncertainty hurting investor confidence)
+- 0-20: Extremely bearish (new bans, sanctions, heavy regulation, military escalation, imminent conflict)
+- 21-40: Bearish (negative regulatory signals, policy uncertainty, geopolitical tension increasing)
 - 41-60: Neutral (unrelated to markets, or ambiguous signals with no clear market impact)
-- 61-80: Bullish (positive economic signals, pro-growth or pro-market policy statements)
-- 81-100: Extremely bullish (major deregulation, strong pro-market stance, or direct asset endorsement)
+- 61-80: Bullish (positive economic signals, pro-growth policy, geopolitical de-escalation, trade progress)
+- 81-100: Extremely bullish (major deregulation, strong pro-market stance, ceasefire/peace deal signed, landmark trade agreement)
+
+Geopolitical guidance:
+- Ceasefire, peace deal, conflict resolution, end of war → bullish (reduces risk premium, boosts investor confidence)
+- Military escalation, new conflict, threats of war, sanctions → bearish
+
+Critical rule — judge by OVERALL CONCLUSION and INTENT, not by which keywords appear most:
+- A post that prominently mentions an asset (e.g., Bitcoin, gold, oil) but frames it negatively (predicting a crash, warning of collapse) must be scored bearishly. The concluding sentiment overrides keyword volume.
+- A post about ending a conflict that uses the word "war" to describe what is ending is bullish, not bearish.
 
 Write the reasoning as a general market sentiment observation — avoid mentioning specific asset prices or crypto specifically. Focus on policy direction, economic conditions, and investor sentiment.
 
-Respond in JSON only, no other text: {"score": <integer 0-100>, "reasoning": "<one sentence explanation>", "market_relevant": <true or false>}"""""
+Respond in JSON only, no other text: {"score": <integer 0-100>, "reasoning": "<one sentence explanation>", "market_relevant": <true or false>}"""
 
 def analyze_tweet(content: str, keyword_hints: list[str]) -> tuple[int, str, bool]:
     """트윗을 분석해 (점수 0~100, 근거 텍스트) 를 반환한다.

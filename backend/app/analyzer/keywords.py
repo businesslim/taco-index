@@ -8,6 +8,10 @@ BULLISH_KEYWORDS = [
     "earnings", "profit", "innovation", "opportunity",
     # 원자재/안전자산
     "gold", "silver", "oil", "energy",
+    # 지정학 리스크 감소 (bullish: 분쟁 종식/완화)
+    "ceasefire", "cease-fire", "peace deal", "peace agreement", "truce",
+    "peace talk", "negotiation", "de-escalat", "end the war", "stop the war",
+    "resolved", "resolution", "normalized", "normalization",
     # 시장 심리
     "great", "win", "winning", "strong", "approve", "approved",
     "support", "freedom", "wealth",
@@ -22,8 +26,9 @@ BEARISH_KEYWORDS = [
     # 경제 위기
     "inflation", "deficit", "debt", "recession", "unemployment",
     "slowdown", "collapse", "crash", "crisis", "default", "bankrupt",
-    # 지정학/갈등
-    "war", "conflict", "block", "blocked", "fake",
+    # 지정학/갈등 (escalation)
+    "war", "conflict", "invade", "invasion", "attack", "strike",
+    "block", "blocked", "fake",
     # 세금
     "tax", "taxes",
 ]
