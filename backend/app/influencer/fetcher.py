@@ -10,19 +10,20 @@ class XApiFetcher:
         self.bearer_token = bearer_token or settings.x_bearer_token
         self.headers = {"Authorization": f"Bearer {self.bearer_token}"}
 
-    def _get(self, path: str, params: dict) -> dict:
+    async def _get(self, path: str, params: dict) -> dict:
         url = f"{self.BASE_URL}{path}"
-        response = httpx.get(url, headers=self.headers, params=params, timeout=10)
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=self.headers, params=params, timeout=10)
         response.raise_for_status()
         return response.json()
 
-    def get_user_id(self, handle: str) -> str:
-        data = self._get(f"/users/by/username/{handle}", {})
+    async def get_user_id(self, handle: str) -> str:
+        data = await self._get(f"/users/by/username/{handle}", {})
         if "data" not in data:
             raise ValueError(f"User not found or API error for handle: {handle}")
         return data["data"]["id"]
 
-    def fetch_tweets(self, x_user_id: str, since_id: str | None) -> list[dict]:
+    async def fetch_tweets(self, x_user_id: str, since_id: str | None) -> list[dict]:
         params: dict = {
             "max_results": 100,
             "tweet.fields": "created_at",
@@ -30,7 +31,7 @@ class XApiFetcher:
         if since_id:
             params["since_id"] = since_id
 
-        data = self._get(f"/users/{x_user_id}/tweets", params)
+        data = await self._get(f"/users/{x_user_id}/tweets", params)
 
         if "data" not in data:
             return []

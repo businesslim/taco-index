@@ -10,6 +10,7 @@ def _make_influencer(handle="saylor", name="Michael Saylor", category="Investor"
     inf.category = category
     inf.domain = domain
     inf.id = 1
+    inf.is_active = True
     return inf
 
 
@@ -28,23 +29,19 @@ def test_get_influencers_returns_200():
 
     async def mock_db():
         db = AsyncMock()
-        # First call returns list result, subsequent calls return tweet result (None)
         inf = _make_influencer()
         idx = _make_index()
-        idx.influencer = inf
+        tweet = MagicMock()
+        tweet.content = "Test tweet"
         list_result = MagicMock()
-        list_result.all.return_value = [(idx, inf)]
-        tweet_result = MagicMock()
-        tweet_result.scalar_one_or_none.return_value = None
-        db.execute = AsyncMock(side_effect=[list_result, tweet_result])
+        list_result.all.return_value = [(inf, idx, tweet)]
+        db.execute = AsyncMock(return_value=list_result)
         yield db
 
     app.dependency_overrides[get_db] = mock_db
     client = TestClient(app)
-    # Just verify the endpoint exists and is registered
-    response = client.get("/influencer")
+    response = client.get("/api/influencer")
     app.dependency_overrides.clear()
-    # 200 or 422 is acceptable — endpoint exists
     assert response.status_code in (200, 422, 500)
 
 
@@ -62,9 +59,8 @@ def test_get_summary_endpoint_exists():
 
     app.dependency_overrides[get_db] = mock_db
     client = TestClient(app)
-    response = client.get("/influencer/summary")
+    response = client.get("/api/influencer/summary")
     app.dependency_overrides.clear()
-    # Endpoint must exist (not 404)
     assert response.status_code != 404
 
 
@@ -81,6 +77,6 @@ def test_get_influencer_by_handle_not_found():
 
     app.dependency_overrides[get_db] = mock_db
     client = TestClient(app)
-    response = client.get("/influencer/unknown_handle_xyz")
+    response = client.get("/api/influencer/unknown_handle_xyz")
     app.dependency_overrides.clear()
     assert response.status_code == 404

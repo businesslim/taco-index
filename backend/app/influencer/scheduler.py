@@ -25,38 +25,47 @@ async def run_influencer_pipeline() -> None:
     logger.info("Influencer pipeline started")
     fetcher = XApiFetcher()
 
+    # Read influencer IDs in a dedicated session, then close it
     async with AsyncSessionLocal() as db:
         result = await db.execute(
-            select(Influencer).where(Influencer.is_active == True)
+            select(Influencer.id).where(Influencer.is_active == True)
         )
-        influencers = result.scalars().all()
-        logger.info(f"Processing {len(influencers)} influencers")
+        influencer_ids = result.scalars().all()
+    logger.info(f"Processing {len(influencer_ids)} influencers")
 
-        for inf in influencers:
-            try:
-                await _process_influencer(db, fetcher, inf)
-            except Exception as e:
-                logger.error(f"Failed to process @{inf.handle}: {e}")
-                await db.rollback()
-                continue
+    # Each influencer gets its own isolated session
+    for inf_id in influencer_ids:
+        try:
+            async with AsyncSessionLocal() as inf_db:
+                await _process_influencer(inf_db, fetcher, inf_id)
+                await inf_db.commit()
+        except Exception as e:
+            logger.error(f"Failed to process influencer id={inf_id}: {e}")
+            continue
 
-        await _update_asset_expert_indexes(db)
-        await _update_weekly_ranks(db)
-        await db.commit()
-        logger.info("Influencer pipeline completed")
+    # Aggregate updates run in their own session after all influencers succeed or fail
+    async with AsyncSessionLocal() as agg_db:
+        await _update_asset_expert_indexes(agg_db)
+        await _update_weekly_ranks(agg_db)
+        await agg_db.commit()
+    logger.info("Influencer pipeline completed")
 
 
-async def _process_influencer(db: AsyncSession, fetcher: XApiFetcher, inf: Influencer) -> None:
-    if not inf.x_user_id:
+async def _process_influencer(db: AsyncSession, fetcher: XApiFetcher, inf_id: int) -> None:
+    # Re-query within this session so we get an attached, modifiable ORM object
+    inf_result = await db.execute(select(Influencer).where(Influencer.id == inf_id))
+    inf = inf_result.scalar_one_or_none()
+    if not inf or not inf.x_user_id:
         return
 
-    tweets = fetcher.fetch_tweets(x_user_id=inf.x_user_id, since_id=inf.last_fetched_tweet_id)
+    tweets = await fetcher.fetch_tweets(x_user_id=inf.x_user_id, since_id=inf.last_fetched_tweet_id)
     if not tweets:
         return
 
-    newest_id = None
+    # X API returns newest-first; capture the newest tweet_id before processing
+    newest_id = tweets[0]["tweet_id"]
+
     for t in tweets:
-        # Skip if already exists
         existing = await db.execute(
             select(InfluencerTweet).where(InfluencerTweet.tweet_id == t["tweet_id"])
         )
@@ -82,10 +91,8 @@ async def _process_influencer(db: AsyncSession, fetcher: XApiFetcher, inf: Influ
             reasoning=scores["reasoning"],
         )
         db.add(score_row)
-        newest_id = t["tweet_id"]
 
-    if newest_id:
-        inf.last_fetched_tweet_id = newest_id
+    inf.last_fetched_tweet_id = newest_id
 
     # Recalculate InfluencerIndex (72h window)
     cutoff = datetime.now(timezone.utc) - timedelta(hours=72)

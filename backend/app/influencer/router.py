@@ -1,6 +1,6 @@
 from datetime import date, timedelta, datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -14,7 +14,7 @@ from app.influencer.schemas import (
 )
 from app.influencer.calculator import score_to_band
 
-router = APIRouter(prefix="/influencer", tags=["influencer"])
+router = APIRouter(prefix="/api/influencer", tags=["influencer"])
 
 
 @router.get("/summary", response_model=InfluencerSummaryOut)
@@ -86,34 +86,48 @@ async def get_influencers(
     category: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    q = select(InfluencerIndex, Influencer).join(
-        Influencer, InfluencerIndex.influencer_id == Influencer.id
+    # Subquery: latest tweet posted_at per influencer
+    latest_tweet_sq = (
+        select(
+            InfluencerTweet.influencer_id,
+            func.max(InfluencerTweet.posted_at).label("max_posted_at"),
+        )
+        .group_by(InfluencerTweet.influencer_id)
+        .subquery()
+    )
+
+    q = (
+        select(Influencer, InfluencerIndex, InfluencerTweet)
+        .outerjoin(InfluencerIndex, InfluencerIndex.influencer_id == Influencer.id)
+        .outerjoin(latest_tweet_sq, latest_tweet_sq.c.influencer_id == Influencer.id)
+        .outerjoin(
+            InfluencerTweet,
+            and_(
+                InfluencerTweet.influencer_id == Influencer.id,
+                InfluencerTweet.posted_at == latest_tweet_sq.c.max_posted_at,
+            ),
+        )
+        .where(Influencer.is_active == True)
     )
     if category:
         q = q.where(Influencer.category == category)
+
     result = await db.execute(q)
     rows = result.all()
 
-    out = []
-    for idx, inf in rows:
-        tweet_result = await db.execute(
-            select(InfluencerTweet)
-            .where(InfluencerTweet.influencer_id == inf.id)
-            .order_by(InfluencerTweet.posted_at.desc())
-            .limit(1)
-        )
-        tweet = tweet_result.scalar_one_or_none()
-        out.append(InfluencerIndexOut(
+    return [
+        InfluencerIndexOut(
             handle=inf.handle,
             name=inf.name,
             category=inf.category,
             domain=inf.domain,
-            score=idx.score,
-            band=idx.band,
-            calculated_at=idx.calculated_at,
+            score=idx.score if idx else 50,
+            band=idx.band if idx else "Neutral",
+            calculated_at=idx.calculated_at if idx else None,
             latest_tweet=tweet.content if tweet else None,
-        ))
-    return out
+        )
+        for inf, idx, tweet in rows
+    ]
 
 
 @router.get("/{handle}", response_model=InfluencerIndexOut)
