@@ -195,12 +195,20 @@ async def save_asset_prices() -> None:
 def start_scheduler():
     """APScheduler를 시작해 파이프라인을 주기적으로 실행한다."""
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    from app.influencer.scheduler import run_influencer_pipeline
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
         run_pipeline,
         "interval",
         minutes=settings.poll_interval_minutes,
         id="taco_pipeline",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        run_influencer_pipeline,
+        "interval",
+        minutes=30,
+        id="influencer_pipeline",
         replace_existing=True,
     )
     scheduler.start()
