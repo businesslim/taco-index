@@ -59,7 +59,7 @@ class InfluencerTweetScore(Base):
 
 
 class InfluencerIndex(Base):
-    __tablename__ = "influencer_indexes"
+    __tablename__ = "influencer_index"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     influencer_id: Mapped[int] = mapped_column(Integer, ForeignKey("influencers.id", ondelete="CASCADE"), unique=True)
@@ -71,7 +71,7 @@ class InfluencerIndex(Base):
 
 
 class AssetExpertIndex(Base):
-    __tablename__ = "asset_expert_indexes"
+    __tablename__ = "asset_expert_index"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     asset: Mapped[str] = mapped_column(String(50), unique=True)  # "crypto" | "stock" | "gold" | "macro"
