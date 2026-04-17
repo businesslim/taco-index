@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     poll_interval_minutes: int = 15
     cors_origins: str = "http://localhost:3000"
     telegram_bot_token: str = ""
+    x_bearer_token: str = ""
 
     @field_validator("database_url", mode="before")
     @classmethod
