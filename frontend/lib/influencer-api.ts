@@ -9,6 +9,7 @@ export interface InfluencerIndexItem {
   band: string;
   calculated_at: string | null;
   latest_tweet: string | null;
+  latest_tweet_id: string | null;
 }
 
 export interface AssetExpertIndex {

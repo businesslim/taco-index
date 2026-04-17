@@ -70,7 +70,7 @@ async def cmd_index(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
-async def notify_subscribers(band_label: str, index_value: int, new_posts: int) -> None:
+async def notify_subscribers(band_label: str, index_value: int, new_posts: int, latest_post: dict | None = None) -> None:
     """파이프라인 완료 후 구독자에게 알림 발송."""
     if not settings.telegram_bot_token:
         return
@@ -81,11 +81,18 @@ async def notify_subscribers(band_label: str, index_value: int, new_posts: int) 
         return
 
     emoji = _band_emoji(band_label)
+
+    post_section = ""
+    if latest_post and latest_post.get("content"):
+        content = latest_post["content"]
+        preview = content[:280] + "…" if len(content) > 280 else content
+        post_section = f"\n\n📝 *Latest Post*\n_{preview}_"
+
     text = (
         f"🌮 *TACO Index Update*\n\n"
-        f"Score: *{index_value}*\n"
-        f"Band: *{band_label}*\n\n"
-        f"For more details, visit 👉 taco-index.com"
+        f"{emoji} Score: *{index_value}* · {band_label}"
+        f"{post_section}\n\n"
+        f"👉 taco\\-index\\.com"
     )
 
     from telegram import Bot

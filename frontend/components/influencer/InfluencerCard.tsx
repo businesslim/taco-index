@@ -32,10 +32,21 @@ export function InfluencerCard({ item }: { item: InfluencerIndexItem }) {
       </div>
       {item.latest_tweet && (
         <div className="mt-2 pt-2 border-t border-slate-700">
-          <div className="text-slate-500 text-xs mb-1">Latest tweet</div>
-          <div className="text-slate-400 text-xs leading-relaxed line-clamp-2">
-            {item.latest_tweet}
-          </div>
+          <div className="text-slate-500 text-xs mb-1">Latest post</div>
+          {item.latest_tweet_id ? (
+            <a
+              href={`https://x.com/${item.handle}/status/${item.latest_tweet_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-400 text-xs leading-relaxed line-clamp-2 hover:text-slate-200 transition-colors cursor-pointer"
+            >
+              {item.latest_tweet}
+            </a>
+          ) : (
+            <div className="text-slate-400 text-xs leading-relaxed line-clamp-2">
+              {item.latest_tweet}
+            </div>
+          )}
         </div>
       )}
     </div>

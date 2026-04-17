@@ -125,6 +125,7 @@ async def get_influencers(
             band=idx.band if idx else "Neutral",
             calculated_at=idx.calculated_at if idx else None,
             latest_tweet=tweet.content if tweet else None,
+            latest_tweet_id=tweet.tweet_id if tweet else None,
         )
         for inf, idx, tweet in rows
     ]
@@ -161,4 +162,5 @@ async def get_influencer(handle: str, db: AsyncSession = Depends(get_db)):
         band=idx.band if idx else "Neutral",
         calculated_at=idx.calculated_at if idx else None,
         latest_tweet=tweet.content if tweet else None,
+        latest_tweet_id=tweet.tweet_id if tweet else None,
     )

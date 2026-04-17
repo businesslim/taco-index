@@ -91,7 +91,8 @@ async def run_pipeline() -> None:
     if new_count > 0:
         try:
             from app.telegram_bot import notify_subscribers
-            await notify_subscribers(band_label, index_value, new_count)
+            latest_post = posts[0] if posts else None
+            await notify_subscribers(band_label, index_value, new_count, latest_post)
         except Exception as e:
             logger.error(f"Telegram notify failed: {e}")
 
