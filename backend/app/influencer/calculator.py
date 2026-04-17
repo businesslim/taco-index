@@ -5,6 +5,8 @@ WINDOW_HOURS = 72
 
 
 def _time_weight(posted_at: datetime) -> float:
+    # Linear decay over 72h window (intentional — simpler than TACO's exponential decay,
+    # predictable for multi-influencer aggregation)
     now = datetime.now(timezone.utc)
     hours_ago = (now - posted_at).total_seconds() / 3600
     if hours_ago >= WINDOW_HOURS:
@@ -51,7 +53,7 @@ def calculate_asset_expert_indexes(influencer_scores: list[dict]) -> list[dict]:
             continue
         avg = round(sum(asset_scores) / len(asset_scores))
         bull = sum(1 for s in asset_scores if s > 60)
-        bear = sum(1 for s in asset_scores if s < 40)
+        bear = sum(1 for s in asset_scores if s <= 40)
         neutral = len(asset_scores) - bull - bear
         result.append({
             "asset": asset,

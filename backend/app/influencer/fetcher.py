@@ -18,6 +18,8 @@ class XApiFetcher:
 
     def get_user_id(self, handle: str) -> str:
         data = self._get(f"/users/by/username/{handle}", {})
+        if "data" not in data:
+            raise ValueError(f"User not found or API error for handle: {handle}")
         return data["data"]["id"]
 
     def fetch_tweets(self, x_user_id: str, since_id: str | None) -> list[dict]:

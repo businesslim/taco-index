@@ -1,6 +1,5 @@
-from datetime import datetime, date
+from datetime import datetime
 from pydantic import BaseModel
-from typing import Optional
 
 
 class InfluencerIndexOut(BaseModel):
@@ -10,8 +9,8 @@ class InfluencerIndexOut(BaseModel):
     domain: str
     score: int
     band: str
-    calculated_at: Optional[datetime]
-    latest_tweet: Optional[str] = None
+    calculated_at: datetime | None = None
+    latest_tweet: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -24,7 +23,7 @@ class AssetExpertIndexOut(BaseModel):
     bear_count: int
     neutral_count: int
     total_count: int
-    calculated_at: Optional[datetime]
+    calculated_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 
@@ -33,8 +32,8 @@ class WeeklyRankEntry(BaseModel):
     handle: str
     name: str
     avg_score: int
-    rank_bull: Optional[int]
-    rank_bear: Optional[int]
+    rank_bull: int | None = None
+    rank_bear: int | None = None
 
 
 class BullBearRatio(BaseModel):
@@ -49,16 +48,3 @@ class InfluencerSummaryOut(BaseModel):
     bull_bear_ratio: BullBearRatio
     weekly_top_bull: list[WeeklyRankEntry]
     weekly_top_bear: list[WeeklyRankEntry]
-
-
-def score_to_band(score: int) -> str:
-    if score <= 20:
-        return "Extreme Bearish"
-    elif score <= 40:
-        return "Bearish"
-    elif score <= 60:
-        return "Neutral"
-    elif score <= 80:
-        return "Bullish"
-    else:
-        return "Extreme Bullish"
