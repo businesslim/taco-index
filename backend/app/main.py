@@ -12,6 +12,7 @@ from app.api.bands import router as bands_router
 from app.api.market import router as market_router
 from app.telegram_bot import run_bot_polling
 from app.influencer import models as influencer_models  # noqa: F401
+from app.influencer.router import router as influencer_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -35,6 +36,7 @@ app.include_router(index_router)
 app.include_router(tweets_router)
 app.include_router(bands_router)
 app.include_router(market_router)
+app.include_router(influencer_router)
 
 @app.get("/health")
 async def health():
