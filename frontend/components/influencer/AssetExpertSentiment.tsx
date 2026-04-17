@@ -19,7 +19,7 @@ export function AssetExpertSentiment({ indexes }: { indexes: AssetExpertIndex[] 
   return (
     <div className="bg-slate-800 rounded-xl p-4">
       <p className="text-slate-500 text-xs font-bold tracking-widest uppercase mb-3">
-        Asset Expert Sentiment · {indexes[0]?.total_count ?? 0}명 기준
+        Asset Expert Sentiment · {indexes[0]?.total_count ?? 0} experts
       </p>
       <div className="flex flex-col gap-3">
         {indexes.map((idx) => {
