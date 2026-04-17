@@ -10,6 +10,7 @@ from app.api.tweets import router as tweets_router
 from app.api.bands import router as bands_router
 from app.api.market import router as market_router
 from app.telegram_bot import run_bot_polling
+from app.influencer import models as influencer_models  # noqa: F401
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
