@@ -30,6 +30,9 @@ export function InfluencerCard({ item }: { item: InfluencerIndexItem }) {
         <span className="text-3xl font-black" style={{ color }}>{item.score}</span>
         <span className="text-xs" style={{ color }}>{item.band.toUpperCase()}</span>
       </div>
+      <div className="text-slate-600 text-xs mt-0.5">
+        72h avg · {item.post_count_72h} post{item.post_count_72h !== 1 ? "s" : ""}
+      </div>
       {item.latest_tweet && (
         <div className="mt-2 pt-2 border-t border-slate-700">
           <div className="text-slate-500 text-xs mb-1">Latest post</div>

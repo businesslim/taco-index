@@ -33,8 +33,9 @@ def test_get_influencers_returns_200():
         idx = _make_index()
         tweet = MagicMock()
         tweet.content = "Test tweet"
+        tweet.tweet_id = "123456"
         list_result = MagicMock()
-        list_result.all.return_value = [(inf, idx, tweet)]
+        list_result.all.return_value = [(inf, idx, tweet, 3)]
         db.execute = AsyncMock(return_value=list_result)
         yield db
 

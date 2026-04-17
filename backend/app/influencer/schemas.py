@@ -12,6 +12,7 @@ class InfluencerIndexOut(BaseModel):
     calculated_at: datetime | None = None
     latest_tweet: str | None = None
     latest_tweet_id: str | None = None
+    post_count_72h: int = 0
 
     model_config = {"from_attributes": True}
 

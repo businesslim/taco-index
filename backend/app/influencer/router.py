@@ -86,6 +86,8 @@ async def get_influencers(
     category: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
+    cutoff_72h = datetime.now(timezone.utc) - timedelta(hours=72)
+
     # Subquery: latest tweet posted_at per influencer
     latest_tweet_sq = (
         select(
@@ -96,8 +98,22 @@ async def get_influencers(
         .subquery()
     )
 
+    # Subquery: post count in last 72h per influencer
+    count_72h_sq = (
+        select(
+            InfluencerTweet.influencer_id,
+            func.count(InfluencerTweet.id).label("post_count"),
+        )
+        .where(InfluencerTweet.posted_at >= cutoff_72h)
+        .group_by(InfluencerTweet.influencer_id)
+        .subquery()
+    )
+
     q = (
-        select(Influencer, InfluencerIndex, InfluencerTweet)
+        select(
+            Influencer, InfluencerIndex, InfluencerTweet,
+            func.coalesce(count_72h_sq.c.post_count, 0).label("post_count_72h"),
+        )
         .outerjoin(InfluencerIndex, InfluencerIndex.influencer_id == Influencer.id)
         .outerjoin(latest_tweet_sq, latest_tweet_sq.c.influencer_id == Influencer.id)
         .outerjoin(
@@ -107,6 +123,7 @@ async def get_influencers(
                 InfluencerTweet.posted_at == latest_tweet_sq.c.max_posted_at,
             ),
         )
+        .outerjoin(count_72h_sq, count_72h_sq.c.influencer_id == Influencer.id)
         .where(Influencer.is_active == True)
     )
     if category:
@@ -126,8 +143,9 @@ async def get_influencers(
             calculated_at=idx.calculated_at if idx else None,
             latest_tweet=tweet.content if tweet else None,
             latest_tweet_id=tweet.tweet_id if tweet else None,
+            post_count_72h=post_count,
         )
-        for inf, idx, tweet in rows
+        for inf, idx, tweet, post_count in rows
     ]
 
 
@@ -145,6 +163,8 @@ async def get_influencer(handle: str, db: AsyncSession = Depends(get_db)):
     )
     idx = idx_result.scalar_one_or_none()
 
+    cutoff_72h = datetime.now(timezone.utc) - timedelta(hours=72)
+
     tweet_result = await db.execute(
         select(InfluencerTweet)
         .where(InfluencerTweet.influencer_id == inf.id)
@@ -152,6 +172,13 @@ async def get_influencer(handle: str, db: AsyncSession = Depends(get_db)):
         .limit(1)
     )
     tweet = tweet_result.scalar_one_or_none()
+
+    count_result = await db.execute(
+        select(func.count(InfluencerTweet.id))
+        .where(InfluencerTweet.influencer_id == inf.id)
+        .where(InfluencerTweet.posted_at >= cutoff_72h)
+    )
+    post_count_72h = count_result.scalar() or 0
 
     return InfluencerIndexOut(
         handle=inf.handle,
@@ -163,4 +190,5 @@ async def get_influencer(handle: str, db: AsyncSession = Depends(get_db)):
         calculated_at=idx.calculated_at if idx else None,
         latest_tweet=tweet.content if tweet else None,
         latest_tweet_id=tweet.tweet_id if tweet else None,
+        post_count_72h=post_count_72h,
     )
