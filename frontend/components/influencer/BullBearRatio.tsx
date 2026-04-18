@@ -1,4 +1,5 @@
 import { BullBearRatio as BullBearRatioType } from "@/lib/influencer-api";
+import { Card, CardContent } from "@/components/ui/card";
 
 const SIZE = 160;
 const STROKE = 18;
@@ -34,58 +35,44 @@ export function BullBearRatio({ data }: { data: BullBearRatioType }) {
   ];
 
   return (
-    <div className="bg-slate-800 rounded-xl p-4">
-      <p className="text-slate-500 text-xs font-bold tracking-widest uppercase mb-4">
-        Bull / Bear Ratio
-      </p>
+    <Card>
+      <CardContent>
+        <p className="text-muted-foreground text-xs font-bold tracking-widest uppercase mb-4">
+          Bull / Bear Ratio
+        </p>
 
-      {/* Donut */}
-      <div className="flex justify-center mb-4">
-        <div className="relative" style={{ width: SIZE, height: SIZE }}>
-          <svg width={SIZE} height={SIZE} style={{ transform: "rotate(-90deg)" }}>
-            <circle
-              cx={SIZE / 2} cy={SIZE / 2} r={R}
-              fill="none" stroke="#1e293b" strokeWidth={STROKE}
-            />
-            <circle
-              cx={SIZE / 2} cy={SIZE / 2} r={R}
-              fill="none" stroke="#22c55e" strokeWidth={STROKE}
-              strokeLinecap="butt"
-              style={arcStyle(bullPct, 0)}
-            />
-            <circle
-              cx={SIZE / 2} cy={SIZE / 2} r={R}
-              fill="none" stroke="#FFD700" strokeWidth={STROKE}
-              strokeLinecap="butt"
-              style={arcStyle(neutralPct, bullPct)}
-            />
-            <circle
-              cx={SIZE / 2} cy={SIZE / 2} r={R}
-              fill="none" stroke="#FF4444" strokeWidth={STROKE}
-              strokeLinecap="butt"
-              style={arcStyle(bearPct, bullPct + neutralPct)}
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-black leading-none" style={{ color: dominant.color }}>
-              {Math.round(dominant.pct)}%
-            </span>
-            <span className="text-slate-400 text-xs mt-1">{dominant.label}</span>
-            <span className="text-slate-600 text-xs">{total_count} experts</span>
+        <div className="flex justify-center mb-4">
+          <div className="relative" style={{ width: SIZE, height: SIZE }}>
+            <svg width={SIZE} height={SIZE} style={{ transform: "rotate(-90deg)" }}>
+              <circle
+                cx={SIZE / 2} cy={SIZE / 2} r={R}
+                fill="none" stroke="currentColor" strokeWidth={STROKE}
+                className="text-muted/50"
+              />
+              <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" stroke="#22c55e" strokeWidth={STROKE} strokeLinecap="butt" style={arcStyle(bullPct, 0)} />
+              <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" stroke="#FFD700" strokeWidth={STROKE} strokeLinecap="butt" style={arcStyle(neutralPct, bullPct)} />
+              <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" stroke="#FF4444" strokeWidth={STROKE} strokeLinecap="butt" style={arcStyle(bearPct, bullPct + neutralPct)} />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-2xl font-black leading-none" style={{ color: dominant.color }}>
+                {Math.round(dominant.pct)}%
+              </span>
+              <span className="text-muted-foreground text-xs mt-1">{dominant.label}</span>
+              <span className="text-muted-foreground/60 text-xs">{total_count} experts</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Legend */}
-      <div className="grid grid-cols-3 divide-x divide-slate-700 border border-slate-700 rounded-lg overflow-hidden">
-        {segments.map(({ color, label, count, pct }) => (
-          <div key={label} className="flex flex-col items-center py-2.5 px-1">
-            <span className="text-xl font-black leading-none" style={{ color }}>{count}</span>
-            <span className="text-xs font-semibold mt-0.5" style={{ color }}>{Math.round(pct)}%</span>
-            <span className="text-slate-500 text-xs mt-0.5">{label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
+        <div className="grid grid-cols-3 divide-x divide-border border border-border rounded-lg overflow-hidden">
+          {segments.map(({ color, label, count, pct }) => (
+            <div key={label} className="flex flex-col items-center py-2.5 px-1">
+              <span className="text-xl font-black leading-none" style={{ color }}>{count}</span>
+              <span className="text-xs font-semibold mt-0.5" style={{ color }}>{Math.round(pct)}%</span>
+              <span className="text-muted-foreground text-xs mt-0.5">{label}</span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

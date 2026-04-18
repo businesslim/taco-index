@@ -12,16 +12,16 @@ export function InfluencerCard({ item }: { item: InfluencerIndexItem }) {
   const color = BAND_COLORS[item.band] ?? "#FFD700";
   return (
     <div
-      className="bg-slate-800 rounded-lg p-3"
+      className="bg-card rounded-lg p-3 ring-1 ring-foreground/10"
       style={{ borderLeft: `3px solid ${color}` }}
     >
       <div className="flex items-center gap-2 mb-2">
-        <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-sm">
+        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm">
           {item.name[0]}
         </div>
         <div>
-          <div className="text-slate-100 text-sm font-semibold">{item.name}</div>
-          <div className="text-slate-500 text-xs">
+          <div className="text-foreground text-sm font-semibold">{item.name}</div>
+          <div className="text-muted-foreground text-xs">
             @{item.handle} · {item.domain}
           </div>
         </div>
@@ -30,23 +30,23 @@ export function InfluencerCard({ item }: { item: InfluencerIndexItem }) {
         <span className="text-3xl font-black" style={{ color }}>{item.score}</span>
         <span className="text-xs" style={{ color }}>{item.band.toUpperCase()}</span>
       </div>
-      <div className="text-slate-600 text-xs mt-0.5">
+      <div className="text-muted-foreground/60 text-xs mt-0.5">
         72h avg · {item.post_count_72h} post{item.post_count_72h !== 1 ? "s" : ""}
       </div>
       {item.latest_tweet && (
-        <div className="mt-2 pt-2 border-t border-slate-700">
-          <div className="text-slate-500 text-xs mb-1">Latest post</div>
+        <div className="mt-2 pt-2 border-t border-border">
+          <div className="text-muted-foreground text-xs mb-1">Latest post</div>
           {item.latest_tweet_id ? (
             <a
               href={`https://x.com/${item.handle}/status/${item.latest_tweet_id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-slate-400 text-xs leading-relaxed line-clamp-2 hover:text-slate-200 transition-colors cursor-pointer"
+              className="text-muted-foreground text-xs leading-relaxed line-clamp-2 hover:text-foreground transition-colors cursor-pointer"
             >
               {item.latest_tweet}
             </a>
           ) : (
-            <div className="text-slate-400 text-xs leading-relaxed line-clamp-2">
+            <div className="text-muted-foreground text-xs leading-relaxed line-clamp-2">
               {item.latest_tweet}
             </div>
           )}

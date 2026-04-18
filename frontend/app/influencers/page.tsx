@@ -63,8 +63,8 @@ export default function InfluencersPage() {
       <div>
         <div className="flex justify-between items-center mb-3">
           <div>
-            <h2 className="text-slate-100 font-bold">Influencer Indexes</h2>
-            <p className="text-slate-500 text-xs">
+            <h2 className="text-foreground font-bold">Influencer Indexes</h2>
+            <p className="text-muted-foreground text-xs">
               Real-time market sentiment · {influencers.length} global experts
             </p>
           </div>

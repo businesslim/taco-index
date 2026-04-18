@@ -22,7 +22,7 @@ export function CategoryFilter({
           className={`px-3 py-1 rounded-full text-xs transition-colors ${
             selected === cat.key
               ? "bg-amber-500/20 border border-amber-500 text-amber-400"
-              : "bg-slate-800 text-slate-400 hover:text-slate-200"
+              : "bg-muted text-muted-foreground hover:text-foreground"
           }`}
         >
           {cat.label}
