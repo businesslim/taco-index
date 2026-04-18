@@ -20,11 +20,8 @@ export function AssetExpertSentiment({ indexes }: { indexes: AssetExpertIndex[] 
   return (
     <Card>
       <CardContent>
-        <p className="text-muted-foreground text-xs font-bold tracking-widest uppercase mb-1">
+        <p className="text-muted-foreground text-xs font-bold tracking-widest uppercase mb-4">
           Expert Sentiment by Asset
-        </p>
-        <p className="text-muted-foreground/60 text-xs mb-4">
-          Avg score across {indexes[0]?.total_count ?? 0} domain-specific experts
         </p>
         <div className="flex flex-col gap-3">
           {indexes.map((idx) => {

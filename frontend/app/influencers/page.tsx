@@ -45,6 +45,14 @@ export default function InfluencersPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Hero */}
+      <div className="flex flex-col gap-1.5">
+        <h2 className="text-lg font-semibold text-foreground">What is Influencer Indexes?</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          Track market sentiment from leading investors, executives, and economists worldwide. Scores are based on their public social media posts, reflecting how bullish or bearish the top financial voices are on crypto, stocks, gold, and macro trends.
+        </p>
+      </div>
+
       {/* Asset Expert Sentiment */}
       {summary && <AssetExpertSentiment indexes={summary.asset_indexes} />}
 
