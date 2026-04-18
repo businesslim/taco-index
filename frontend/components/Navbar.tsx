@@ -20,7 +20,7 @@ export function Navbar() {
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl">🌮</span>
-            <h1 className="text-xl font-bold">TACO Index</h1>
+            <h1 className="text-xl font-bold hidden sm:block">TACO Index</h1>
           </Link>
           <nav className="flex items-center">
             <Link
@@ -42,7 +42,9 @@ export function Navbar() {
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                Influencers ▾
+                <span className="hidden sm:inline">Influencer Indexes</span>
+                <span className="sm:hidden">Influencers</span>
+                {" ▾"}
               </Link>
               <div className="absolute top-full left-0 hidden group-hover:block bg-slate-800 border border-slate-700 rounded-lg p-2 w-52 shadow-xl z-10">
                 <div className="text-slate-500 text-xs font-bold tracking-wider px-2 pb-2">
