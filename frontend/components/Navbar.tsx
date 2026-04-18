@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 const DROP_ITEMS = [
@@ -19,7 +20,7 @@ export function Navbar() {
       <div className="max-w-5xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl">🌮</span>
+            <Image src="/logo.png" alt="TACO Index" width={28} height={28} className="invert" />
             <h1 className="text-xl font-bold hidden sm:block">TACO Index</h1>
           </Link>
           <nav className="flex items-center">
