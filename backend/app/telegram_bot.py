@@ -92,7 +92,7 @@ async def notify_subscribers(band_label: str, index_value: int, new_posts: int, 
         f"🌮 *TACO Index Update*\n\n"
         f"{emoji} Score: *{index_value}* · {band_label}"
         f"{post_section}\n\n"
-        f"👉 taco\\-index\\.com"
+        f"👉 taco-index.com"
     )
 
     from telegram import Bot

@@ -18,8 +18,11 @@ const ASSET_LABELS: Record<string, string> = {
 export function AssetExpertSentiment({ indexes }: { indexes: AssetExpertIndex[] }) {
   return (
     <div className="bg-slate-800 rounded-xl p-4">
-      <p className="text-slate-500 text-xs font-bold tracking-widest uppercase mb-3">
-        Asset Expert Sentiment · {indexes[0]?.total_count ?? 0} experts
+      <p className="text-slate-500 text-xs font-bold tracking-widest uppercase mb-1">
+        Expert Sentiment by Asset
+      </p>
+      <p className="text-slate-600 text-xs mb-3">
+        Avg score across {indexes[0]?.total_count ?? 0} domain-specific experts
       </p>
       <div className="flex flex-col gap-3">
         {indexes.map((idx) => {
