@@ -35,6 +35,9 @@ export const metadata: Metadata = {
     description:
       "Track how Donald Trump's Truth Social posts move financial markets. TACO Index scores each post for market relevance, giving real-time sentiment signals for crypto, equities, and commodities.",
   },
+  verification: {
+    google: "jr-iw4l_W94Aw1FZeWUB3-ZcsvESrlXBB3-6YhfE_-E",
+  },
 };
 
 export default function RootLayout({
