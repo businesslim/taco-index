@@ -13,6 +13,7 @@ class InfluencerIndexOut(BaseModel):
     latest_tweet: str | None = None
     latest_tweet_id: str | None = None
     post_count_72h: int = 0
+    profile_image_url: str | None = None
 
     model_config = {"from_attributes": True}
 

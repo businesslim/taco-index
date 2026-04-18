@@ -14,6 +14,7 @@ class Influencer(Base):
     category: Mapped[str] = mapped_column(String(50))  # "Investor" | "CEO" | "BigTech" | "Economist" | "Institution"
     domain: Mapped[str] = mapped_column(String(50))  # "crypto" | "stock" | "macro" | "gold"
     x_user_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True)
+    profile_image_url: Mapped[Optional[str]] = mapped_column(String(512))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     last_fetched_tweet_id: Mapped[Optional[str]] = mapped_column(String(255))
 

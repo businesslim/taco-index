@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { InfluencerIndexItem } from "@/lib/influencer-api";
 
 const BAND_COLORS: Record<string, string> = {
@@ -16,8 +17,19 @@ export function InfluencerCard({ item }: { item: InfluencerIndexItem }) {
       style={{ borderLeft: `3px solid ${color}` }}
     >
       <div className="flex items-center gap-2 mb-2">
-        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm">
-          {item.name[0]}
+        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm overflow-hidden flex-shrink-0">
+          {item.profile_image_url ? (
+            <Image
+              src={item.profile_image_url}
+              alt={item.name}
+              width={32}
+              height={32}
+              className="w-full h-full object-cover"
+              unoptimized
+            />
+          ) : (
+            item.name[0]
+          )}
         </div>
         <div>
           <div className="text-foreground text-sm font-semibold">{item.name}</div>

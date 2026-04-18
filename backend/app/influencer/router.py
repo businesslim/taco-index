@@ -144,6 +144,7 @@ async def get_influencers(
             latest_tweet=tweet.content if tweet else None,
             latest_tweet_id=tweet.tweet_id if tweet else None,
             post_count_72h=post_count,
+            profile_image_url=inf.profile_image_url,
         )
         for inf, idx, tweet, post_count in rows
     ]

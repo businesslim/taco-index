@@ -11,6 +11,7 @@ export interface InfluencerIndexItem {
   latest_tweet: string | null;
   latest_tweet_id: string | null;
   post_count_72h: number;
+  profile_image_url: string | null;
 }
 
 export interface AssetExpertIndex {

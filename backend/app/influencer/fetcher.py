@@ -23,6 +23,17 @@ class XApiFetcher:
             raise ValueError(f"User not found or API error for handle: {handle}")
         return data["data"]["id"]
 
+    async def get_profile_image_url(self, handle: str) -> str:
+        data = await self._get(
+            f"/users/by/username/{handle}",
+            {"user.fields": "profile_image_url"},
+        )
+        if "data" not in data:
+            raise ValueError(f"User not found: {handle}")
+        url = data["data"].get("profile_image_url", "")
+        # _normal is 48px — upgrade to 400x400
+        return url.replace("_normal.", "_400x400.")
+
     async def fetch_tweets(self, x_user_id: str, since_id: str | None) -> list[dict]:
         params: dict = {
             "max_results": 100,
