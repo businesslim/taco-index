@@ -1,9 +1,12 @@
-export type SortKey = "score_desc" | "score_asc" | "updated_desc" | "updated_asc" | "active_desc" | "active_asc";
+export type SortKey = "active_desc" | "active_asc" | "score_desc" | "score_asc" | "updated_desc" | "updated_asc";
 
-const BUTTONS: { asc: SortKey; desc: SortKey; label: string }[] = [
-  { label: "Active", desc: "active_desc", asc: "active_asc" },
-  { label: "Score", desc: "score_desc", asc: "score_asc" },
-  { label: "Post",  desc: "updated_desc", asc: "updated_asc" },
+const OPTIONS: { key: SortKey; label: string }[] = [
+  { key: "active_desc",  label: "Most Active" },
+  { key: "active_asc",   label: "Least Active" },
+  { key: "score_desc",   label: "Highest Score" },
+  { key: "score_asc",    label: "Lowest Score" },
+  { key: "updated_desc", label: "Latest Post" },
+  { key: "updated_asc",  label: "Oldest Post" },
 ];
 
 export function SortControl({
@@ -14,38 +17,16 @@ export function SortControl({
   onChange: (key: SortKey) => void;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-muted-foreground/60 text-xs">Sort</span>
-      <div className="flex gap-1.5">
-        {BUTTONS.map((btn) => {
-          const isDesc = value === btn.desc;
-          const isAsc = value === btn.asc;
-          const isActive = isDesc || isAsc;
-
-          const handleClick = () => {
-            if (!isActive) onChange(btn.desc);
-            else if (isDesc) onChange(btn.asc);
-            else onChange(btn.desc);
-          };
-
-          return (
-            <button
-              key={btn.label}
-              onClick={handleClick}
-              className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs transition-colors ${
-                isActive
-                  ? "bg-amber-500/20 border border-amber-500 text-amber-400"
-                  : "bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {btn.label}
-              <span className="opacity-70">
-                {isDesc ? "↓" : isAsc ? "↑" : "↕"}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as SortKey)}
+      className="text-xs rounded-full px-3 py-1 bg-muted text-muted-foreground border-0 cursor-pointer hover:text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+    >
+      {OPTIONS.map((opt) => (
+        <option key={opt.key} value={opt.key}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
   );
 }

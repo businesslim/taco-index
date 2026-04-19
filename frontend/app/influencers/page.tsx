@@ -79,7 +79,7 @@ export default function InfluencersPage() {
             </p>
           </div>
         </div>
-        <div className="flex flex-col gap-2 mb-3">
+        <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
           <CategoryFilter selected={category} onChange={handleCategoryChange} />
           <SortControl value={sort} onChange={setSort} />
         </div>
