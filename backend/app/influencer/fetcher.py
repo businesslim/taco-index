@@ -38,6 +38,7 @@ class XApiFetcher:
         params: dict = {
             "max_results": 100,
             "tweet.fields": "created_at",
+            "exclude": "retweets",
         }
         if since_id:
             params["since_id"] = since_id
