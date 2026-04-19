@@ -1,6 +1,14 @@
 import Image from "next/image";
 import { InfluencerIndexItem } from "@/lib/influencer-api";
 
+function timeAgo(iso: string): string {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+}
+
 const BAND_COLORS: Record<string, string> = {
   "Extreme Bullish": "#008000",
   "Bullish": "#22c55e",
@@ -44,6 +52,9 @@ export function InfluencerCard({ item }: { item: InfluencerIndexItem }) {
       </div>
       <div className="text-muted-foreground/60 text-xs mt-0.5">
         72h avg · {item.post_count_72h} post{item.post_count_72h !== 1 ? "s" : ""}
+        {item.latest_tweet_posted_at && (
+          <span> · {timeAgo(item.latest_tweet_posted_at)}</span>
+        )}
       </div>
       {item.latest_tweet && (
         <div className="mt-2 pt-2 border-t border-border">

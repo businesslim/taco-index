@@ -145,6 +145,7 @@ async def get_influencers(
             calculated_at=idx.calculated_at if idx else None,
             latest_tweet=tweet.content if tweet else None,
             latest_tweet_id=tweet.tweet_id if tweet else None,
+            latest_tweet_posted_at=tweet.posted_at if tweet else None,
             post_count_72h=post_count,
             profile_image_url=inf.profile_image_url,
         )
@@ -193,5 +194,6 @@ async def get_influencer(handle: str, db: AsyncSession = Depends(get_db)):
         calculated_at=idx.calculated_at if idx else None,
         latest_tweet=tweet.content if tweet else None,
         latest_tweet_id=tweet.tweet_id if tweet else None,
+        latest_tweet_posted_at=tweet.posted_at if tweet else None,
         post_count_72h=post_count_72h,
     )

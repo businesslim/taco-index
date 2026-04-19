@@ -10,6 +10,7 @@ export interface InfluencerIndexItem {
   calculated_at: string | null;
   latest_tweet: string | null;
   latest_tweet_id: string | null;
+  latest_tweet_posted_at: string | null;
   post_count_72h: number;
   profile_image_url: string | null;
 }
