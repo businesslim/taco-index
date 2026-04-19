@@ -43,8 +43,13 @@ function RankList({
   const isBull = type === "bull";
   return (
     <div>
-      <p className={`text-xs font-semibold mb-2 ${isBull ? "text-green-400" : "text-red-400"}`}>
-        {isBull ? "🐂 Most Bullish" : "🐻 Most Bearish"}
+      <p className={`text-xs font-semibold ${isBull ? "text-green-400" : "text-red-400"}`}>
+        {isBull ? "Most Bullish" : "Most Bearish"}
+      </p>
+      <p className="text-muted-foreground/60 text-xs mb-2">
+        {isBull
+          ? "Highest avg. sentiment score this week"
+          : "Lowest avg. sentiment score this week"}
       </p>
       <div className="flex flex-col gap-1.5">
         {entries.map((entry, i) => (
