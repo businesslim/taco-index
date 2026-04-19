@@ -4,14 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
-const DROP_ITEMS = [
-  { label: "All Influencers", href: "/influencers" },
-  { label: "Investors", href: "/influencers?category=Investor" },
-  { label: "CEOs & Executives", href: "/influencers?category=CEO" },
-  { label: "Big Tech", href: "/influencers?category=BigTech" },
-  { label: "Economists", href: "/influencers?category=Economist" },
-];
-
 export function Navbar() {
   const pathname = usePathname();
 
@@ -34,34 +26,17 @@ export function Navbar() {
             >
               TACO Index
             </Link>
-            <div className="relative group">
-              <Link
-                href="/influencers"
-                className={`px-3 py-2 text-sm transition-colors ${
-                  pathname === "/influencers"
-                    ? "text-slate-100 border-b-2 border-amber-500"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <span className="hidden sm:inline">Influencer Indexes</span>
-                <span className="sm:hidden">Influencers</span>
-                {" ▾"}
-              </Link>
-              <div className="absolute top-full left-0 hidden group-hover:block bg-slate-800 border border-slate-700 rounded-lg p-2 w-52 shadow-xl z-10">
-                <div className="text-slate-500 text-xs font-bold tracking-wider px-2 pb-2">
-                  CATEGORIES
-                </div>
-                {DROP_ITEMS.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="block px-2 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
+            <Link
+              href="/influencers"
+              className={`px-3 py-2 text-sm transition-colors ${
+                pathname === "/influencers"
+                  ? "text-slate-100 border-b-2 border-amber-500"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <span className="hidden sm:inline">Influencer Indexes</span>
+              <span className="sm:hidden">Influencers</span>
+            </Link>
           </nav>
         </div>
         <a
