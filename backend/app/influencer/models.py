@@ -84,6 +84,16 @@ class AssetExpertIndex(Base):
     calculated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
+class InfluencerIndexHistory(Base):
+    __tablename__ = "influencer_index_history"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    influencer_id: Mapped[int] = mapped_column(Integer, ForeignKey("influencers.id", ondelete="CASCADE"), index=True)
+    score: Mapped[int] = mapped_column(Integer)
+    band: Mapped[str] = mapped_column(String(50))
+    calculated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
 class WeeklyInfluencerRank(Base):
     __tablename__ = "weekly_influencer_ranks"
     __table_args__ = (UniqueConstraint("week_start", "influencer_id", name="uq_weekly_rank_week_influencer"),)

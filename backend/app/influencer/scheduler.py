@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import AsyncSessionLocal
 from app.influencer.models import (
     Influencer, InfluencerTweet, InfluencerTweetScore,
-    InfluencerIndex, AssetExpertIndex, WeeklyInfluencerRank,
+    InfluencerIndex, InfluencerIndexHistory, AssetExpertIndex, WeeklyInfluencerRank,
 )
 from app.influencer.fetcher import XApiFetcher
 from app.influencer.scorer import score_influencer_post
@@ -115,6 +115,7 @@ async def _process_influencer(db: AsyncSession, fetcher: XApiFetcher, inf_id: in
     new_score = calculate_influencer_index(score_data)
     band = score_to_band(new_score)
 
+    now = datetime.now(timezone.utc)
     idx_result = await db.execute(
         select(InfluencerIndex).where(InfluencerIndex.influencer_id == inf.id)
     )
@@ -122,9 +123,11 @@ async def _process_influencer(db: AsyncSession, fetcher: XApiFetcher, inf_id: in
     if idx:
         idx.score = new_score
         idx.band = band
-        idx.calculated_at = datetime.now(timezone.utc)
+        idx.calculated_at = now
     else:
         db.add(InfluencerIndex(influencer_id=inf.id, score=new_score, band=band))
+
+    db.add(InfluencerIndexHistory(influencer_id=inf.id, score=new_score, band=band, calculated_at=now))
 
 
 async def _update_asset_expert_indexes(db: AsyncSession) -> None:
