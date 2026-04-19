@@ -79,7 +79,7 @@ export function WeeklyRank({
   topBear: WeeklyRankEntry[];
 }) {
   return (
-    <Card>
+    <Card className="h-full">
       <CardContent>
         <p className="text-muted-foreground text-xs font-bold tracking-widest uppercase mb-1">
           Weekly Rank

@@ -1,8 +1,8 @@
 import { BullBearRatio as BullBearRatioType } from "@/lib/influencer-api";
 import { Card, CardContent } from "@/components/ui/card";
 
-const SIZE = 160;
-const STROKE = 18;
+const SIZE = 220;
+const STROKE = 22;
 const R = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * R;
 const GAP = 2;
@@ -35,13 +35,13 @@ export function BullBearRatio({ data }: { data: BullBearRatioType }) {
   ];
 
   return (
-    <Card>
-      <CardContent>
+    <Card className="h-full">
+      <CardContent className="flex flex-col h-full">
         <p className="text-muted-foreground text-xs font-bold tracking-widest uppercase mb-4">
           Bull / Bear Ratio
         </p>
 
-        <div className="flex justify-center mb-4">
+        <div className="flex-1 flex items-center justify-center py-2">
           <div className="relative" style={{ width: SIZE, height: SIZE }}>
             <svg width={SIZE} height={SIZE} style={{ transform: "rotate(-90deg)" }}>
               <circle
@@ -54,16 +54,16 @@ export function BullBearRatio({ data }: { data: BullBearRatioType }) {
               <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" stroke="#FF4444" strokeWidth={STROKE} strokeLinecap="butt" style={arcStyle(bearPct, bullPct + neutralPct)} />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-black leading-none" style={{ color: dominant.color }}>
+              <span className="text-3xl font-black leading-none" style={{ color: dominant.color }}>
                 {Math.round(dominant.pct)}%
               </span>
-              <span className="text-muted-foreground text-xs mt-1">{dominant.label}</span>
-              <span className="text-muted-foreground/60 text-xs">{total_count} experts</span>
+              <span className="text-muted-foreground text-sm mt-1">{dominant.label}</span>
+              <span className="text-muted-foreground/60 text-xs mt-0.5">{total_count} experts</span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 divide-x divide-border border border-border rounded-lg overflow-hidden">
+        <div className="grid grid-cols-3 divide-x divide-border border border-border rounded-lg overflow-hidden mt-2">
           {segments.map(({ color, label, count, pct }) => (
             <div key={label} className="flex flex-col items-center py-2.5 px-1">
               <span className="text-xl font-black leading-none" style={{ color }}>{count}</span>
