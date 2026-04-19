@@ -18,7 +18,7 @@ export default function InfluencersPage() {
   const [summary, setSummary] = useState<InfluencerSummary | null>(null);
   const [influencers, setInfluencers] = useState<InfluencerIndexItem[]>([]);
   const [category, setCategory] = useState<string | null>(null);
-  const [sort, setSort] = useState<SortKey>("score_desc");
+  const [sort, setSort] = useState<SortKey>("active_desc");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -86,8 +86,10 @@ export default function InfluencersPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {[...influencers]
             .sort((a, b) => {
-              if (sort === "score_desc") return b.score - a.score;
-              if (sort === "score_asc")  return a.score - b.score;
+              if (sort === "score_desc")  return b.score - a.score;
+              if (sort === "score_asc")   return a.score - b.score;
+              if (sort === "active_desc") return b.post_count_72h - a.post_count_72h;
+              if (sort === "active_asc")  return a.post_count_72h - b.post_count_72h;
               const ta = a.latest_tweet_id ?? "";
               const tb = b.latest_tweet_id ?? "";
               if (sort === "updated_desc") return tb.localeCompare(ta);

@@ -1,8 +1,9 @@
-export type SortKey = "score_desc" | "score_asc" | "updated_desc" | "updated_asc";
+export type SortKey = "score_desc" | "score_asc" | "updated_desc" | "updated_asc" | "active_desc" | "active_asc";
 
-const BUTTONS: { asc: SortKey; desc: SortKey; label: string; descLabel: string; ascLabel: string }[] = [
-  { label: "Score", desc: "score_desc", asc: "score_asc", descLabel: "Highest first", ascLabel: "Lowest first" },
-  { label: "Post", desc: "updated_desc", asc: "updated_asc", descLabel: "Latest first", ascLabel: "Oldest first" },
+const BUTTONS: { asc: SortKey; desc: SortKey; label: string }[] = [
+  { label: "Active", desc: "active_desc", asc: "active_asc" },
+  { label: "Score", desc: "score_desc", asc: "score_asc" },
+  { label: "Post",  desc: "updated_desc", asc: "updated_asc" },
 ];
 
 export function SortControl({
