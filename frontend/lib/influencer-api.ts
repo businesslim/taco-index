@@ -38,6 +38,7 @@ export interface WeeklyRankEntry {
   avg_score: number;
   rank_bull: number | null;
   rank_bear: number | null;
+  profile_image_url: string | null;
 }
 
 export interface InfluencerSummary {

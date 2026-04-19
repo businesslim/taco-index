@@ -70,12 +70,14 @@ async def get_summary(db: AsyncSession = Depends(get_db)):
         bull_bear_ratio=bull_bear,
         weekly_top_bull=[
             WeeklyRankEntry(handle=inf.handle, name=inf.name,
-                           avg_score=r.avg_score, rank_bull=r.rank_bull, rank_bear=r.rank_bear)
+                           avg_score=r.avg_score, rank_bull=r.rank_bull, rank_bear=r.rank_bear,
+                           profile_image_url=inf.profile_image_url)
             for r, inf in top_bull
         ],
         weekly_top_bear=[
             WeeklyRankEntry(handle=inf.handle, name=inf.name,
-                           avg_score=r.avg_score, rank_bull=r.rank_bull, rank_bear=r.rank_bear)
+                           avg_score=r.avg_score, rank_bull=r.rank_bull, rank_bear=r.rank_bear,
+                           profile_image_url=inf.profile_image_url)
             for r, inf in top_bear
         ],
     )

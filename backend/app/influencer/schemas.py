@@ -37,6 +37,7 @@ class WeeklyRankEntry(BaseModel):
     avg_score: int
     rank_bull: int | None = None
     rank_bear: int | None = None
+    profile_image_url: str | None = None
 
 
 class BullBearRatio(BaseModel):
