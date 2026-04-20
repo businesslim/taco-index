@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"
     telegram_bot_token: str = ""
     x_bearer_token: str = ""
+    x_api_key: str = ""
+    x_api_secret: str = ""
+    x_access_token: str = ""
+    x_access_token_secret: str = ""
 
     @field_validator("database_url", mode="before")
     @classmethod
