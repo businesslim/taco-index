@@ -87,7 +87,7 @@ async def run_pipeline() -> None:
     # 4. 자산 가격 DB 저장 (자체 히스토리 수집)
     await save_asset_prices()
 
-    # 5. 새 포스트가 있을 때만 텔레그램 알림 발송
+    # 5. 새 포스트가 있을 때만 텔레그램 알림 + X 포스팅
     if new_count > 0:
         try:
             from app.telegram_bot import notify_subscribers
@@ -95,6 +95,12 @@ async def run_pipeline() -> None:
             await notify_subscribers(band_label, index_value, new_count, latest_post)
         except Exception as e:
             logger.error(f"Telegram notify failed: {e}")
+
+        try:
+            from app.x_bot import maybe_post_update
+            await maybe_post_update(band_label, index_value)
+        except Exception as e:
+            logger.error(f"X post failed: {e}")
 
 
 async def recalculate_index(db: AsyncSession, redis) -> None:
@@ -193,6 +199,26 @@ async def save_asset_prices() -> None:
         logger.info(f"Saved {len(prices)} asset prices")
 
 
+async def run_daily_x_summary() -> None:
+    """매일 UTC 00:00에 X 일일 요약 포스팅."""
+    redis = await get_redis()
+    cached = await redis.get(TACO_INDEX_CACHE_KEY)
+    if not cached or ":" not in cached:
+        return
+    index_value_str, band_label = cached.split(":", 1)
+    async with AsyncSessionLocal() as db:
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+        result = await db.execute(
+            select(Tweet).where(Tweet.posted_at >= cutoff)
+        )
+        tweet_count = len(result.scalars().all())
+    try:
+        from app.x_bot import post_daily_summary
+        await post_daily_summary(band_label, int(index_value_str), tweet_count)
+    except Exception as e:
+        logger.error(f"X daily summary failed: {e}")
+
+
 def start_scheduler():
     """APScheduler를 시작해 파이프라인을 주기적으로 실행한다."""
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -210,6 +236,14 @@ def start_scheduler():
         "interval",
         minutes=30,
         id="influencer_pipeline",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        run_daily_x_summary,
+        "cron",
+        hour=0,
+        minute=0,
+        id="x_daily_summary",
         replace_existing=True,
     )
     scheduler.start()
