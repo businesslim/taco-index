@@ -160,7 +160,7 @@ export interface MyPredictions {
 
 export async function fetchPredictionStats(): Promise<PredictionStats> {
   try {
-    const res = await fetch(`${API_BASE}/predictions/stats`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/api/predictions/stats`, { cache: "no-store" });
     if (!res.ok) return { consensus: {}, leaderboard: [] };
     return res.json();
   } catch {
@@ -169,7 +169,7 @@ export async function fetchPredictionStats(): Promise<PredictionStats> {
 }
 
 export async function fetchMyPredictions(email: string): Promise<MyPredictions> {
-  const res = await fetch(`${API_BASE}/predictions/me?email=${encodeURIComponent(email)}`, {
+  const res = await fetch(`${API_BASE}/api/predictions/me?email=${encodeURIComponent(email)}`, {
     cache: "no-store",
   });
   if (!res.ok) return { predictions: [], stats: { total: 0, correct: 0, accuracy: 0 } };
@@ -184,7 +184,7 @@ export async function submitPrediction(body: {
   timeframe: string;
   direction: string;
 }): Promise<Prediction> {
-  const res = await fetch(`${API_BASE}/predictions`, {
+  const res = await fetch(`${API_BASE}/api/predictions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
