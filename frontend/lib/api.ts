@@ -122,3 +122,76 @@ export async function fetchAssetHistory(
     return { btc: [], spx: [], gold: [] };
   }
 }
+
+// --- Predictions ---
+
+export interface PredictionConsensus {
+  bullish: number;
+  bearish: number;
+  total: number;
+}
+
+export interface PredictionStats {
+  consensus: Record<string, Record<string, PredictionConsensus>>;
+  leaderboard: {
+    name: string;
+    image: string | null;
+    total: number;
+    correct: number;
+    accuracy: number;
+  }[];
+}
+
+export interface Prediction {
+  id: string;
+  asset: string;
+  timeframe: string;
+  direction: string;
+  price_at_prediction: number;
+  predicted_at: string;
+  evaluates_at: string;
+  result: string;
+}
+
+export interface MyPredictions {
+  predictions: Prediction[];
+  stats: { total: number; correct: number; accuracy: number };
+}
+
+export async function fetchPredictionStats(): Promise<PredictionStats> {
+  try {
+    const res = await fetch(`${API_BASE}/predictions/stats`, { cache: "no-store" });
+    if (!res.ok) return { consensus: {}, leaderboard: [] };
+    return res.json();
+  } catch {
+    return { consensus: {}, leaderboard: [] };
+  }
+}
+
+export async function fetchMyPredictions(email: string): Promise<MyPredictions> {
+  const res = await fetch(`${API_BASE}/predictions/me?email=${encodeURIComponent(email)}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return { predictions: [], stats: { total: 0, correct: 0, accuracy: 0 } };
+  return res.json();
+}
+
+export async function submitPrediction(body: {
+  email: string;
+  name?: string;
+  image?: string;
+  asset: string;
+  timeframe: string;
+  direction: string;
+}): Promise<Prediction> {
+  const res = await fetch(`${API_BASE}/predictions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail ?? "Failed to submit prediction");
+  }
+  return res.json();
+}
