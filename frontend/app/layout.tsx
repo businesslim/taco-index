@@ -5,13 +5,13 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Navbar } from "@/components/Navbar";
+import { AuthProvider } from "@/components/AuthProvider";
 
 const dmMono = DM_Mono({
   weight: ["400", "500"],
   subsets: ["latin"],
   variable: "--font-mono",
 });
-
 
 export const metadata: Metadata = {
   title: {
@@ -48,8 +48,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("dark font-sans", GeistSans.variable, dmMono.variable)}>
       <body className="bg-background text-foreground min-h-screen">
-        <Navbar />
-        <main className="max-w-5xl mx-auto px-6 py-8">{children}</main>
+        <AuthProvider>
+          <Navbar />
+          <main className="max-w-5xl mx-auto px-6 py-8">{children}</main>
+        </AuthProvider>
       </body>
       <GoogleAnalytics gaId="G-F5LSGKHT55" />
       <script
