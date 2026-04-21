@@ -39,6 +39,16 @@ export function Navbar() {
               <span className="hidden sm:inline">Influencer Indexes</span>
               <span className="sm:hidden">Influencers</span>
             </Link>
+            <Link
+              href="/prediction"
+              className={`px-3 py-2 text-sm transition-colors ${
+                pathname === "/prediction"
+                  ? "text-slate-100 border-b-2 border-amber-500"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              Prediction
+            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-2">
