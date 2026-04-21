@@ -9,7 +9,7 @@ from app.database import AsyncSessionLocal
 from app.models.prediction import User, Prediction, AssetEnum, TimeframeEnum, DirectionEnum, ResultEnum
 from app.models.asset_price import AssetPriceHistory
 
-router = APIRouter(prefix="/predictions", tags=["predictions"])
+router = APIRouter(prefix="/api/predictions", tags=["predictions"])
 
 
 async def get_db():
