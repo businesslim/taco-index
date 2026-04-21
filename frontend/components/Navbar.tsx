@@ -75,21 +75,24 @@ export function Navbar() {
             <span className="hidden sm:inline">Telegram Bot</span>
           </a>
           {session ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pl-1 border-l border-slate-700">
               {session.user?.image && (
                 <Image
                   src={session.user.image}
                   alt={session.user.name ?? "User"}
                   width={28}
                   height={28}
-                  className="rounded-full"
+                  className="rounded-full shrink-0"
                 />
               )}
+              <span className="text-xs text-slate-300 hidden sm:block truncate max-w-[80px]">
+                {session.user?.name?.split(" ")[0]}
+              </span>
               <button
                 onClick={() => signOut()}
-                className="text-xs text-slate-400 hover:text-slate-200 transition-colors px-2 py-1"
+                className="text-xs text-slate-500 hover:text-slate-300 transition-colors whitespace-nowrap"
               >
-                <span className="hidden sm:inline">Sign out</span>
+                Sign out
               </button>
             </div>
           ) : (
