@@ -246,6 +246,59 @@ def start_scheduler():
         id="x_daily_summary",
         replace_existing=True,
     )
+    scheduler.add_job(
+        evaluate_predictions,
+        "interval",
+        hours=1,
+        id="evaluate_predictions",
+        replace_existing=True,
+    )
     scheduler.start()
     logger.info(f"Scheduler started: polling every {settings.poll_interval_minutes} minutes")
     return scheduler
+
+
+async def evaluate_predictions() -> None:
+    """만료된 예측을 실제 가격과 비교해 결과를 판정한다."""
+    from app.models.prediction import Prediction, ResultEnum, User
+    now = datetime.now(timezone.utc)
+
+    async with AsyncSessionLocal() as db:
+        from sqlalchemy import select, and_
+        from app.models.prediction import Prediction, ResultEnum, User
+
+        result = await db.execute(
+            select(Prediction).where(
+                and_(
+                    Prediction.result == ResultEnum.pending,
+                    Prediction.evaluates_at <= now,
+                )
+            )
+        )
+        pending = result.scalars().all()
+        if not pending:
+            return
+
+        for pred in pending:
+            price_result = await db.execute(
+                select(AssetPriceHistory)
+                .where(AssetPriceHistory.symbol == pred.asset.value)
+                .order_by(AssetPriceHistory.recorded_at.desc())
+                .limit(1)
+            )
+            current_price = price_result.scalar_one_or_none()
+            if not current_price:
+                continue
+
+            went_up = current_price.price > pred.price_at_prediction
+            predicted_up = pred.direction.value == "bullish"
+            pred.result = ResultEnum.correct if went_up == predicted_up else ResultEnum.incorrect
+            pred.evaluated_at = now
+
+            user_result = await db.execute(select(User).where(User.id == pred.user_id))
+            user = user_result.scalar_one_or_none()
+            if user and pred.result == ResultEnum.correct:
+                user.correct_count += 1
+
+        await db.commit()
+        logger.info(f"Evaluated {len(pending)} predictions")
