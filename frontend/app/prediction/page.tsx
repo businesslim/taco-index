@@ -73,8 +73,8 @@ export default function PredictionPage() {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
       fetchPredictionStats().then(setStats);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to submit prediction");
     } finally {
       setSubmitting(false);
     }
