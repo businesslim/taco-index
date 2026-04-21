@@ -10,6 +10,7 @@ from app.api.index import router as index_router
 from app.api.tweets import router as tweets_router
 from app.api.bands import router as bands_router
 from app.api.market import router as market_router
+from app.api.predictions import router as predictions_router
 from app.telegram_bot import run_bot_polling
 from app.influencer import models as influencer_models  # noqa: F401
 from app.influencer.router import router as influencer_router
@@ -17,7 +18,7 @@ from app.influencer.router import router as influencer_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     start_scheduler()
-    asyncio.create_task(run_pipeline())  # 서버 시작 시 즉시 1회 실행
+    asyncio.create_task(run_pipeline())
     asyncio.create_task(run_influencer_pipeline())
     asyncio.create_task(run_bot_polling())
     yield
@@ -28,7 +29,7 @@ app = FastAPI(title="TACO Index API", version="1.0.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in settings.cors_origins.split(",")],
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -37,6 +38,7 @@ app.include_router(tweets_router)
 app.include_router(bands_router)
 app.include_router(market_router)
 app.include_router(influencer_router)
+app.include_router(predictions_router)
 
 @app.get("/health")
 async def health():
