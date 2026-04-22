@@ -8,7 +8,7 @@ TACO Index Telegram Bot
 
 import logging
 import asyncio
-from telegram import Update
+from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from app.config import settings
 from app.redis_client import get_redis
@@ -70,8 +70,15 @@ async def cmd_index(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
-async def notify_subscribers(band_label: str, index_value: int, new_posts: int, latest_post: dict | None = None) -> None:
-    """파이프라인 완료 후 구독자에게 알림 발송."""
+async def notify_for_post(
+    band_label: str,
+    index_value: int,
+    post: dict,
+    final_score: int,
+    reasoning: str,
+    market_relevant: bool,
+) -> None:
+    """트럼프 포스트 하나에 대해 구독자에게 알림 발송."""
     if not settings.telegram_bot_token:
         return
 
@@ -81,28 +88,40 @@ async def notify_subscribers(band_label: str, index_value: int, new_posts: int, 
         return
 
     emoji = _band_emoji(band_label)
+    content = post.get("content", "")
+    post_link = post.get("raw_data", {}).get("link") or ""
+    content_preview = content[:300] + "…" if len(content) > 300 else content
 
-    post_section = ""
-    if latest_post and latest_post.get("content"):
-        content = latest_post["content"]
-        preview = content[:280] + "…" if len(content) > 280 else content
-        post_section = f"\n\n📝 *Latest Post*\n_{preview}_"
+    topic_tag = "" if market_relevant else "\n⚠️ _Off\\-Topic \\(not market related\\)_"
+
+    reasoning_section = ""
+    if reasoning and market_relevant:
+        reasoning_section = f"\n\n🔍 *Insight*\n_{reasoning}_"
+
+    link_section = f"\n\n🔗 [View Post]({post_link})" if post_link else ""
 
     text = (
-        f"🌮 *TACO Index Update*\n\n"
-        f"{emoji} Score: *{index_value}* · {band_label}"
-        f"{post_section}\n\n"
-        f"👉 taco-index.com"
+        f"🌮 *TACO Index: {index_value}* \\({band_label}\\)\n"
+        f"📊 Post Score: *{final_score}/100*"
+        f"{topic_tag}\n\n"
+        f"📝 *Trump's Post*\n_{content_preview}_"
+        f"{reasoning_section}"
+        f"{link_section}\n\n"
+        f"👉 taco\\-index\\.com"
     )
 
-    from telegram import Bot
     bot = Bot(token=settings.telegram_bot_token)
     async with bot:
         for chat_id in subscriber_ids:
             try:
-                await bot.send_message(chat_id=chat_id, text=text, parse_mode="Markdown")
+                await bot.send_message(chat_id=chat_id, text=text, parse_mode="MarkdownV2")
             except Exception as e:
                 logger.warning(f"Failed to send to {chat_id}: {e}")
+
+
+async def notify_subscribers(band_label: str, index_value: int, new_posts: int, latest_post: dict | None = None) -> None:
+    """하위 호환성 유지용 — jobs.py에서 직접 notify_for_post를 사용하도록 전환 중."""
+    pass
 
 
 def build_application():
