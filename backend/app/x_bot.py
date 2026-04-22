@@ -1,8 +1,8 @@
 """
 TACO Index X Bot
 
-밴드 전환 또는 극단값(≥80 / ≤20) 진입 시 자동 포스팅.
-2시간 이내 중복 포스팅 방지 (Redis 기반).
+트럼프가 market-relevant 포스트를 올릴 때마다 X에 자동 포스팅.
+일일 요약은 스케줄러에서 직접 호출.
 """
 
 import logging
@@ -13,9 +13,8 @@ from app.redis_client import get_redis
 
 logger = logging.getLogger(__name__)
 
-X_LAST_BAND_KEY = "x:last_band"
 X_LAST_POSTED_KEY = "x:last_posted_at"
-MIN_POST_INTERVAL_SECONDS = 7200  # 2시간
+MIN_POST_INTERVAL_SECONDS = 300  # 동일 포스트 중복 방지용 5분 쿨다운
 
 BAND_LABEL = {
     "Taco de Habanero": "Extreme Bearish 🌶️",
@@ -35,60 +34,52 @@ def _client() -> tweepy.Client:
     )
 
 
-async def _can_post(redis) -> bool:
-    last = await redis.get(X_LAST_POSTED_KEY)
-    if not last:
-        return True
-    return (datetime.now(timezone.utc).timestamp() - float(last)) >= MIN_POST_INTERVAL_SECONDS
+def _truncate(text: str, max_len: int) -> str:
+    return text[:max_len] + "…" if len(text) > max_len else text
 
 
-async def _mark_posted(redis, band_label: str) -> None:
-    await redis.set(X_LAST_BAND_KEY, band_label)
-    await redis.set(X_LAST_POSTED_KEY, str(datetime.now(timezone.utc).timestamp()))
-
-
-async def maybe_post_update(band_label: str, index_value: int) -> None:
-    """밴드 전환 또는 극단값 진입 시 X에 포스팅."""
+async def post_for_trump_post(
+    post: dict,
+    final_score: int,
+    reasoning: str,
+    index_value: int,
+    band_label: str,
+) -> None:
+    """트럼프 market-relevant 포스트마다 X에 트윗."""
     if not settings.x_api_key:
         return
 
-    redis = await get_redis()
-
-    if not await _can_post(redis):
-        return
-
-    last_band = await redis.get(X_LAST_BAND_KEY)
-    band_changed = last_band != band_label
-    is_extreme = index_value >= 80 or index_value <= 20
-
-    if not band_changed and not is_extreme:
-        return
-
     sentiment = BAND_LABEL.get(band_label, band_label)
+    content = post.get("content", "")
+    content_preview = _truncate(content, 100)
+    reasoning_preview = _truncate(reasoning, 90) if reasoning else ""
 
-    if band_changed and last_band:
-        old_sentiment = BAND_LABEL.get(last_band, last_band)
+    text = (
+        f"🌮 TACO: {index_value} ({sentiment}) · Post: {final_score}/100\n\n"
+        f'"{content_preview}"\n\n'
+        f"{reasoning_preview}\n\n"
+        f"👉 taco-index.com #TrumpTrades"
+    )
+
+    # 280자 초과 시 reasoning 제거
+    if len(text) > 280:
         text = (
-            f"🔄 TACO Index flipped: {old_sentiment} → {sentiment}\n\n"
-            f"Score: {index_value} / 100\n\n"
-            f"Trump's Truth Social activity is signaling a shift.\n"
-            f"👉 taco-index.com\n\n"
-            f"#Bitcoin #TrumpTrades #Crypto"
-        )
-    else:
-        text = (
-            f"🚨 TACO Index: {index_value} — {sentiment}\n\n"
-            f"Extreme signal from Trump's Truth Social.\n"
-            f"👉 taco-index.com\n\n"
-            f"#Bitcoin #TrumpTrades #Crypto"
+            f"🌮 TACO: {index_value} ({sentiment}) · Post: {final_score}/100\n\n"
+            f'"{content_preview}"\n\n'
+            f"👉 taco-index.com #TrumpTrades"
         )
 
     try:
-        _client().create_tweet(text=text)
-        await _mark_posted(redis, band_label)
-        logger.info(f"X posted: {index_value} ({band_label})")
+        _client().create_tweet(text=text[:280])
+        await _mark_posted()
+        logger.info(f"X posted for trump post: score={final_score}, index={index_value}")
     except Exception as e:
         logger.error(f"X post failed: {e}")
+
+
+async def _mark_posted() -> None:
+    redis = await get_redis()
+    await redis.set(X_LAST_POSTED_KEY, str(datetime.now(timezone.utc).timestamp()))
 
 
 async def post_daily_summary(band_label: str, index_value: int, tweet_count: int) -> None:
@@ -112,3 +103,8 @@ async def post_daily_summary(band_label: str, index_value: int, tweet_count: int
         logger.info(f"X daily summary posted: {index_value} ({band_label})")
     except Exception as e:
         logger.error(f"X daily summary failed: {e}")
+
+
+async def maybe_post_update(band_label: str, index_value: int) -> None:
+    """하위 호환성 유지용 — 더 이상 사용하지 않음."""
+    pass
