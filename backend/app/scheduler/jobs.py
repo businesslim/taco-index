@@ -35,6 +35,7 @@ async def run_pipeline() -> None:
 
     # 2. 새 트윗 필터링 + 분석 + 저장
     new_count = 0
+    scored_posts = []  # 알림용 포스트별 결과 수집
     async with AsyncSessionLocal() as db:
         for post in posts:
             if await is_seen(redis, post["tweet_id"]):
@@ -76,6 +77,12 @@ async def run_pipeline() -> None:
             )
             db.add(score)
             await mark_seen(redis, post["tweet_id"])
+            scored_posts.append({
+                "post": post,
+                "final_score": final_score,
+                "reasoning": reasoning,
+                "market_relevant": market_relevant,
+            })
             new_count += 1
 
         await db.commit()
@@ -87,20 +94,35 @@ async def run_pipeline() -> None:
     # 4. 자산 가격 DB 저장 (자체 히스토리 수집)
     await save_asset_prices()
 
-    # 5. 새 포스트가 있을 때만 텔레그램 알림 + X 포스팅
-    if new_count > 0:
+    # 5. 포스트별 텔레그램 알림 + X 포스팅
+    for scored in scored_posts:
+        # 텔레그램: Off-Topic 포함 모든 포스트 알림
         try:
-            from app.telegram_bot import notify_subscribers
-            latest_post = posts[0] if posts else None
-            await notify_subscribers(band_label, index_value, new_count, latest_post)
+            from app.telegram_bot import notify_for_post
+            await notify_for_post(
+                band_label=band_label,
+                index_value=index_value,
+                post=scored["post"],
+                final_score=scored["final_score"],
+                reasoning=scored["reasoning"],
+                market_relevant=scored["market_relevant"],
+            )
         except Exception as e:
             logger.error(f"Telegram notify failed: {e}")
 
-        try:
-            from app.x_bot import maybe_post_update
-            await maybe_post_update(band_label, index_value)
-        except Exception as e:
-            logger.error(f"X post failed: {e}")
+        # X: market_relevant 포스트만 트윗
+        if scored["market_relevant"]:
+            try:
+                from app.x_bot import post_for_trump_post
+                await post_for_trump_post(
+                    post=scored["post"],
+                    final_score=scored["final_score"],
+                    reasoning=scored["reasoning"],
+                    index_value=index_value,
+                    band_label=band_label,
+                )
+            except Exception as e:
+                logger.error(f"X post failed: {e}")
 
 
 async def recalculate_index(db: AsyncSession, redis) -> None:
