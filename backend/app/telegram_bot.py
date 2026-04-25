@@ -6,6 +6,7 @@ TACO Index Telegram Bot
 - /index  : 현재 TACO Index 조회
 """
 
+import html
 import logging
 import asyncio
 from telegram import Update, Bot
@@ -87,34 +88,46 @@ async def notify_for_post(
     if not subscriber_ids:
         return
 
-    emoji = _band_emoji(band_label)
     content = post.get("content", "")
     post_link = post.get("raw_data", {}).get("link") or ""
     content_preview = content[:300] + "…" if len(content) > 300 else content
 
-    topic_tag = "" if market_relevant else "\n⚠️ _Off\\-Topic \\(not market related\\)_"
+    topic_tag = (
+        "" if market_relevant
+        else "\n⚠️ <i>Off-Topic (not market related)</i>"
+    )
 
     reasoning_section = ""
     if reasoning and market_relevant:
-        reasoning_section = f"\n\n🔍 *Insight*\n_{reasoning}_"
+        reasoning_section = (
+            f"\n\n🔍 <b>Insight</b>\n<i>{html.escape(reasoning)}</i>"
+        )
 
-    link_section = f"\n\n🔗 [View Post]({post_link})" if post_link else ""
+    link_section = (
+        f"\n\n🔗 <a href=\"{html.escape(post_link, quote=True)}\">View Post</a>"
+        if post_link else ""
+    )
 
     text = (
-        f"🌮 *TACO Index: {index_value}* \\({band_label}\\)\n"
-        f"📊 Post Score: *{final_score}/100*"
+        f"🌮 <b>TACO Index: {index_value}</b> ({html.escape(band_label)})\n"
+        f"📊 Post Score: <b>{final_score}/100</b>"
         f"{topic_tag}\n\n"
-        f"📝 *Trump's Post*\n_{content_preview}_"
+        f"📝 <b>Trump's Post</b>\n<i>{html.escape(content_preview)}</i>"
         f"{reasoning_section}"
         f"{link_section}\n\n"
-        f"👉 taco\\-index\\.com"
+        f"👉 taco-index.com"
     )
 
     bot = Bot(token=settings.telegram_bot_token)
     async with bot:
         for chat_id in subscriber_ids:
             try:
-                await bot.send_message(chat_id=chat_id, text=text, parse_mode="MarkdownV2")
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=text,
+                    parse_mode="HTML",
+                    disable_web_page_preview=False,
+                )
             except Exception as e:
                 logger.warning(f"Failed to send to {chat_id}: {e}")
 
