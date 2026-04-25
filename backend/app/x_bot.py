@@ -34,8 +34,29 @@ def _client() -> tweepy.Client:
     )
 
 
+PER_POST_HASHTAGS = "#TacoIndex #TrumpTrades #Bitcoin #SP500 #Markets"
+DAILY_HASHTAGS = "#TacoIndex #TrumpTrades #Bitcoin #Crypto #SP500 #Markets #Trump"
+TRUTH_USER = "realDonaldTrump"
+TWEET_LIMIT = 280
+TCO_URL_LENGTH = 23  # X auto-shortens URLs to t.co/xxxx (23 chars)
+
+
 def _truncate(text: str, max_len: int) -> str:
     return text[:max_len] + "…" if len(text) > max_len else text
+
+
+def _truth_social_url(tweet_id: str) -> str:
+    return f"https://truthsocial.com/@{TRUTH_USER}/posts/{tweet_id}"
+
+
+def _effective_length(text: str, urls: list[str]) -> int:
+    """X 트윗 길이 계산 — URL은 t.co로 단축돼 23자로 카운트된다."""
+    placeholder = "x" * TCO_URL_LENGTH
+    estimated = text
+    for url in urls:
+        if url:
+            estimated = estimated.replace(url, placeholder)
+    return len(estimated)
 
 
 async def post_for_trump_post(
@@ -50,27 +71,40 @@ async def post_for_trump_post(
         return
 
     sentiment = BAND_LABEL.get(band_label, band_label)
-    content = post.get("content", "")
-    content_preview = _truncate(content, 100)
-    reasoning_preview = _truncate(reasoning, 90) if reasoning else ""
+    tweet_id = str(post.get("tweet_id", "")).strip()
+    truth_url = _truth_social_url(tweet_id) if tweet_id else "https://taco-index.com"
 
-    text = (
-        f"🌮 TACO: {index_value} ({sentiment}) · Post: {final_score}/100\n\n"
-        f'"{content_preview}"\n\n'
-        f"{reasoning_preview}\n\n"
-        f"👉 taco-index.com #TrumpTrades"
+    content = post.get("content", "")
+    header = f"🌮 TACO: {index_value} ({sentiment}) · Post: {final_score}/100"
+    mention_line = f"@{TRUTH_USER} {truth_url}"
+
+    # 길이 한도 안에서 가장 풍부한 후보부터 시도.
+    # X는 이모지를 가중치 2로 카운트하므로 raw 길이는 ~270 이하로 보수적으로 잡는다.
+    candidates: list[str] = []
+    if reasoning:
+        candidates.append(
+            f"{header}\n\n"
+            f'"{_truncate(content, 75)}"\n\n'
+            f"💡 {_truncate(reasoning, 55)}\n\n"
+            f"{mention_line}\n{PER_POST_HASHTAGS}"
+        )
+    candidates.append(
+        f"{header}\n\n"
+        f'"{_truncate(content, 130)}"\n\n'
+        f"{mention_line}\n{PER_POST_HASHTAGS}"
+    )
+    candidates.append(
+        f"{header}\n\n"
+        f"{mention_line}\n{PER_POST_HASHTAGS}"
     )
 
-    # 280자 초과 시 reasoning 제거
-    if len(text) > 280:
-        text = (
-            f"🌮 TACO: {index_value} ({sentiment}) · Post: {final_score}/100\n\n"
-            f'"{content_preview}"\n\n'
-            f"👉 taco-index.com #TrumpTrades"
-        )
+    text = next(
+        (c for c in candidates if _effective_length(c, [truth_url]) <= TWEET_LIMIT),
+        candidates[-1],
+    )
 
     try:
-        _client().create_tweet(text=text[:280])
+        _client().create_tweet(text=text)
         await _mark_posted()
         logger.info(f"X posted for trump post: score={final_score}, index={index_value}")
     except Exception as e:
@@ -94,8 +128,8 @@ async def post_daily_summary(band_label: str, index_value: int, tweet_count: int
         f"📊 TACO Index Daily — {today}\n\n"
         f"Closing: {index_value} ({sentiment})\n"
         f"Posts analyzed: {tweet_count}\n\n"
-        f"👉 taco-index.com\n\n"
-        f"#Bitcoin #TrumpTrades #Crypto"
+        f"👉 https://taco-index.com\n\n"
+        f"{DAILY_HASHTAGS}"
     )
 
     try:
