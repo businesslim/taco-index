@@ -72,7 +72,7 @@ async def post_for_trump_post(
 
     sentiment = BAND_LABEL.get(band_label, band_label)
     tweet_id = str(post.get("tweet_id", "")).strip()
-    truth_url = _truth_social_url(tweet_id) if tweet_id else "https://taco-index.com"
+    truth_url = _truth_social_url(tweet_id) if tweet_id else "https://www.taco-index.com"
 
     content = post.get("content", "")
     header = f"🌮 TACO: {index_value} ({sentiment}) · Post: {final_score}/100"
@@ -128,7 +128,7 @@ async def post_daily_summary(band_label: str, index_value: int, tweet_count: int
         f"📊 TACO Index Daily — {today}\n\n"
         f"Closing: {index_value} ({sentiment})\n"
         f"Posts analyzed: {tweet_count}\n\n"
-        f"👉 https://taco-index.com\n\n"
+        f"👉 https://www.taco-index.com\n\n"
         f"{DAILY_HASHTAGS}"
     )
 

@@ -20,14 +20,14 @@ export const metadata: Metadata = {
   },
   description:
     "Track how Donald Trump's Truth Social posts move financial markets. TACO Index scores each post for market relevance, giving real-time sentiment signals for crypto, equities, and commodities.",
-  metadataBase: new URL("https://taco-index.com"),
+  metadataBase: new URL("https://www.taco-index.com"),
   openGraph: {
     type: "website",
     siteName: "TACO Index",
     title: "TACO Index — Real-Time Market Sentiment from Trump's Truth Social",
     description:
       "Track how Donald Trump's Truth Social posts move financial markets. TACO Index scores each post for market relevance, giving real-time sentiment signals for crypto, equities, and commodities.",
-    url: "https://taco-index.com",
+    url: "https://www.taco-index.com",
   },
   twitter: {
     card: "summary_large_image",
